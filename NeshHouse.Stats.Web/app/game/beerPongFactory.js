@@ -12,9 +12,9 @@ function BeerPongFactory($window, $rootScope, $cookies, localStorageService) {
         var connection = $window.jQuery.hubConnection();
         connection.logging = true;
         var authData = localStorageService.get('authorizationData');
-        //connection.qs = 'Bearer ' + authData.token;
+        connection.qs = { 'Bearer': authData.token };
 
-        document.cookie = "BearerToken=" + authData.token + "; path=/";
+        //document.cookie = "BearerToken=" + authData.token + "; path=/";
         //$cookies.put('BearerToken', 'Bearer ' + authData.token)
 
         //working

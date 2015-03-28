@@ -1005,7 +1005,10 @@
     <Compile Include="Models\Player.cs" />
     <Compile Include="Auth\UserModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SimpleAuthorizationServerProvider.cs" />
+    <Compile Include="Providers\SimpleAuthorizationServerProvider.cs" />
+    <Compile Include="SignalRHelpers\AuthenticationMiddleware.cs" />
+    <Compile Include="SignalRHelpers\CustomUserIdProvider.cs" />
+    <Compile Include="SignalRHelpers\QueryStringBearerAuthorizeAttribute.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>
   <ItemGroup>

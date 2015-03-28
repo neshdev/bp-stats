@@ -7,104 +7,87 @@ using System.Web;
 using System.Data.Entity;
 using System.Security.Principal;
 using System.Security.Claims;
+using Microsoft.Owin.Security.DataProtection;
+using Microsoft.Owin.Security.DataHandler;
+using Microsoft.AspNet.SignalR.Hubs;
+using Microsoft.AspNet.SignalR.Owin;
+using System.Threading.Tasks;
+using NeshHouse.Stats.Web.SignalRHelpers;
 
 namespace NeshHouse.Stats.Web
 {
     [Authorize]
     public class BeerpongHub : Hub
     {
-        private string GetCurrentUserName()
-        {
-            if (Context.User.GetType() == typeof(GenericPrincipal) || Context.User.GetType() == typeof(WindowsPrincipal))
-            {
-                var principle = Context.Request.Environment["server.User"] as ClaimsPrincipal;
-                if (principle != null)
-                {
-                    return principle.Identity.Name;
-                }
 
-                var token = Context.Request.QueryString.Get("Bearer");
-                var authenticationTicket = Startup.AuthServerOptions.AccessTokenFormat.Unprotect(token);
-                return authenticationTicket.Identity.Name;
-            }
-            else
-            {
-                var principle = Context.User as ClaimsPrincipal;
-                var results = principle.Claims.First(x => x.Type == "sub");
-                return principle != null ? principle.Identity.Name : string.Empty;
-            }
-        }
-
-        public override System.Threading.Tasks.Task OnConnected()
+        public override Task OnConnected()
         {
-            //var username = GetCurrentUserName();
-            var username = Context.User.Identity.Name;
+            var name = Context.User.Identity.Name;
 
             using (var db = new HubContext())
             {
-                var user = db.Users.Include(x => x.Rooms).SingleOrDefault(x => x.UserName == username);
+                var user = db.Users
+                    .Include(u => u.Connections)
+                    .SingleOrDefault(u => u.UserName == name);
+
                 if (user == null)
                 {
-                    user = new User()
+                    user = new User
                     {
-                        UserName = username
+                        UserName = name,
+                        Connections = new List<Connection>()
                     };
                     db.Users.Add(user);
-                    db.SaveChanges();
                 }
-                else
+
+                user.Connections.Add(new Connection
                 {
-                    foreach (var item in user.Rooms)
-                    {
-                        Groups.Add(Context.ConnectionId, item.RoomName);
-                    }
-                }
+                    ConnectionID = Context.ConnectionId,
+                    UserAgent = Context.Request.Headers["User-Agent"],
+                    Connected = true
+                });
+                db.SaveChanges();
             }
             return base.OnConnected();
+        }
+
+        public override Task OnDisconnected(bool stopCalled)
+        {
+            using (var db = new HubContext())
+            {
+                var connection = db.Connections.Find(Context.ConnectionId);
+                connection.Connected = false;
+                db.SaveChanges();
+            }
+            return base.OnDisconnected(stopCalled);
         }
 
         public void AddToRoom(string roomName)
         {
             using (var db = new HubContext())
             {
-                // Retrieve room.
-                var room = db.Rooms.Find(roomName);
+                var user = db.Users.Include(x => x.Connections).SingleOrDefault(x => x.UserName == Context.User.Identity.Name);
 
-                if (room != null)
+                if (user != null)
                 {
-                    var user = new User() { UserName = Context.User.Identity.Name };
-                    db.Users.Attach(user);
-
-                    room.Users.Add(user);
-                    db.SaveChanges();
-                    Groups.Add(Context.ConnectionId, roomName);
-
-                    Clients.All.userChanged(user);
+                    Clients.All.userChanged(user.UserName);
                 }
+
+                
             }
 
             Clients.All.msg(roomName);
-
-            
         }
 
         public void RemoveFromRoom(string roomName)
         {
             using (var db = new HubContext())
             {
-                // Retrieve room.
-                var room = db.Rooms.Find(roomName);
-                if (room != null)
+                var user = db.Users.Include(x => x.Connections).SingleOrDefault(x => x.UserName == Context.User.Identity.Name);
+
+                if (user != null)
                 {
-                    var user = new User() { UserName = Context.User.Identity.Name };
-                    db.Users.Attach(user);
-
-                    room.Users.Remove(user);
-                    db.SaveChanges();
-
-                    Groups.Remove(Context.ConnectionId, roomName);
-
-                    Clients.All.userChanged(user);
+                    Clients.All.userChanged(user.UserName);
                 }
             }
         }
