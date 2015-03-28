@@ -1,0 +1,11 @@
+﻿<div class="container-fluid" ng-controller="roomController as roomCtrl">
+    <h4>Room Name: {{roomCtrl.roomName}}</h4>
+
+    <ul class="col-sm-12">
+        <li class="list-group-item">Players</li>
+        <li class="list-group-item" ng-repeat="p in roomCtrl.players">{{ p }}</li>
+    </ul>
+
+    
+</div>
+
