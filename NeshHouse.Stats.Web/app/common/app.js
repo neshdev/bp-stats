@@ -4,6 +4,7 @@
     angular.module('bp.core', ['ngRoute', 'ngCookies', 'LocalStorageModule', 'angular-loading-bar', 'ui.bootstrap'])
            .config(['$routeProvider', function ($routeProvider) {
                $routeProvider
+                   .when('/home', { templateUrl: 'home/home.html' })
                    .when('/search', { templateUrl: 'game/search.html' })
                    .when('/rankings', { templateUrl: 'stats/rankings.html' })
                    .when('/stats', { templateUrl: 'stats/stats.html' })
