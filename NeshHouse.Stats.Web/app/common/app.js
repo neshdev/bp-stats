@@ -6,7 +6,9 @@
                $routeProvider
                    .when('/search', { templateUrl: 'game/search.html' })
                    .when('/rankings', { templateUrl: 'stats/rankings.html' })
-                   .when('/login', { templateUrl: 'login/login.html'})
+                   .when('/stats', { templateUrl: 'stats/stats.html' })
+                   .when('/login', { templateUrl: 'login/login.html' })
+                   .when('/signup', { templateUrl: 'login/signup.html' })
                    .otherwise({ redirectTo: '/rankings' });
            }]);
 

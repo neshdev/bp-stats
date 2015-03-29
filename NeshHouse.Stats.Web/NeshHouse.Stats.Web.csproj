@@ -991,6 +991,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\PlayerStatsController.cs" />
     <Compile Include="Controllers\StatsController.cs" />
     <Compile Include="Hub\BeerpongHub.cs" />
     <Compile Include="Controllers\AccountController.cs" />
@@ -998,12 +999,14 @@
     <Compile Include="Auth\AuthContext.cs" />
     <Compile Include="Auth\AuthRepository.cs" />
     <Compile Include="Hub\HubContext.cs" />
+    <Compile Include="Models\BeerpongContext.cs" />
     <Compile Include="Models\Game.cs" />
     <Compile Include="Models\GamePlayer.cs" />
     <Compile Include="Models\GameResults.cs" />
     <Compile Include="Models\GameStatus.cs" />
     <Compile Include="Models\Player.cs" />
     <Compile Include="Auth\UserModel.cs" />
+    <Compile Include="Models\Stats.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Providers\SimpleAuthorizationServerProvider.cs" />
     <Compile Include="SignalRHelpers\AuthenticationMiddleware.cs" />

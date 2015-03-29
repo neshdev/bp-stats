@@ -1,6 +1,6 @@
 ﻿angular.module('bp.core').controller('loginController', ['$scope', '$location', 'authService', function ($scope, $location, authService) {
     $scope.loginData = {
-        username: '',
+        userName: '',
         password : '',
     };
     

@@ -1,35 +1,14 @@
-﻿(function () {
-    'use strict';
+﻿angular
+    .module('bp.core')
+    .controller('statsController', ['$scope', '$http', function ($scope, $http) {
+        $scope.message = "this is harija";
+        $scope.playerStats = [];
 
-    angular.module('bp.core').controller('statsController', function () {
-        vm = this;
-        vm.currentStats =
-            {
-                "position": 1,
-                "alias": "neshiro",
-                "wins": 10,
-                "losses": 10,
-            };
-        vm.statsVsOthers =
-            [
-                {
-                    "hero": "nesh",
-                    "heroWins": 1,
-                    "villan": "victor",
-                    "villanWins": 1
-                },
-                {
-                    "hero": "nesh",
-                    "heroWins": 1,
-                    "villan": "victor",
-                    "villanWins": 1
-                },
-                {
-                    "hero": "nesh",
-                    "heroWins": 1,
-                    "villan": "victor",
-                    "villanWins": 1
-                },
-            ];
-    });
-})();
+        $scope.getStats = function () {
+            $http.get('/api/playerstats')
+                .success(function (data, status, headers, config) {
+                    $scope.playerStats = data;
+                    $scope.message = 'completed';
+            });
+        };
+    }]);

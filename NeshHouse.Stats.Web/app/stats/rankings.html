@@ -1,25 +1,27 @@
-﻿<div class="container-fluid" ng-controller="rankingsController">
+﻿<div class="container" ng-controller="rankingsController">
 
     <div class="alert alert-info col-sm-12">
         <p class="info">Total {{rankings.length}} players on current Beep Pong</p>
     </div>
-
-    <div class="table-responsive col-sm-12">
-        <table class="table table-striped table-bordered table-hover table-condensed">
-            <tr>
-                <th>Rank</th>
-                <th>Alias</th>
-                <th>Wins</th>
-                <th>Losses</th>
-                <th>Ratio</th>
-            </tr>
-            <tr ng-repeat="ranking in rankings">
-                <td>{{ ranking.position }}</td>
-                <td>{{ ranking.alias }}</td>
-                <td>{{ ranking.wins }}</td>
-                <td>{{ ranking.loss }}</td>
-                <td>{{ ranking.wins / (ranking.wins + ranking.loss) | percentage:2 }}</td>
-            </tr>
-        </table>
+    <div class="row">
+        <div class="table-responsive col-sm-12">
+            <table class="table table-striped table-bordered table-hover table-condensed">
+                <tr>
+                    <th>Rank</th>
+                    <th>Alias</th>
+                    <th>Wins</th>
+                    <th>Losses</th>
+                    <th>Ratio</th>
+                </tr>
+                <tr ng-repeat="ranking in rankings">
+                    <td>{{ ranking.position }}</td>
+                    <td>{{ ranking.alias }}</td>
+                    <td>{{ ranking.wins }}</td>
+                    <td>{{ ranking.loss }}</td>
+                    <td>{{ ranking.wins / (ranking.wins + ranking.loss) | percentage:2 }}</td>
+                </tr>
+            </table>
+        </div>
     </div>
+    
 </div>

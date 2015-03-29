@@ -13,6 +13,11 @@ namespace NeshHouse.Stats.Web.SignalRHelpers
 
     public class QueryStringBearerAuthorizeAttribute : AuthorizeAttribute
     {
+        protected override bool UserAuthorized(System.Security.Principal.IPrincipal user)
+        {
+            return base.UserAuthorized(user);
+        }
+
         public override bool AuthorizeHubConnection(HubDescriptor hubDescriptor, IRequest request)
         {
             var token = request.QueryString.Get("Bearer");
@@ -26,6 +31,8 @@ namespace NeshHouse.Stats.Web.SignalRHelpers
             request.Environment["server.User"] = new ClaimsPrincipal(authenticationTicket.Identity);
             request.Environment["server.Username"] = authenticationTicket.Identity.Name;
             //request.GetHttpContext().User = new ClaimsPrincipal(authenticationTicket.Identity);
+            var user = new ClaimsPrincipal(authenticationTicket.Identity);
+            this.UserAuthorized(user);
             
             return true;
         }

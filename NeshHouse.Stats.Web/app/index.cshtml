@@ -27,6 +27,7 @@
                     <ul class="nav navbar-nav">
                         <li ng-hide="!authentication.isAuth"><a href="#/search">Search</a></li>
                         <li><a href="#/rankings">Rankings</a></li>
+                        <li><a href="#/stats">My Stats</a></li>
                         <li ng-hide="!authentication.isAuth"><a href="#/login" ng-click="logOut()">Logout</a></li>
                         <li ng-hide="authentication.isAuth"><a href="#/login">Login</a></li>
 
@@ -75,5 +76,7 @@
     <script src="~/app/login/signupController.js"></script>
     <script src="~/app/stats/rankingsController.js"></script>
     <script src="~/app/game/SearchController.js"></script>
+    <script src="~/app/stats/statsController.js"></script>
+
 </body>
 </html>
