@@ -18,9 +18,6 @@
         $scope.savedSuccessfully = false;
 
         $scope.signUp = function () {
-            authService
-                .saveRegistration($scope.registration).then(onSuccess, onError);
-            
             var onSuccess = function (response) {
                 $scope.savedSuccessfully = true;
                 $scope.message = "User has been registered successfully, you will be redicted to login page in 2 seconds.";
@@ -36,6 +33,9 @@
                 }
                 $scope.message = "Failed to register user due to:" + errors.join(' ');
             }
+
+            authService
+                .saveRegistration($scope.registration).then(onSuccess, onError);
         };
 
         var startTimer = function () {

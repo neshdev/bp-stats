@@ -12,10 +12,8 @@ angular.module('bp.core').factory('authService', ['$http', '$q', 'localStorageSe
     var _saveRegistration = function (registration) {
 
         _logOut();
-
-        return $http.post(serviceBase + 'api/account/register', registration).then(function (response) {
-            return response;
-        });
+        
+        return $http.post(serviceBase + 'api/account/register', registration);
 
     };
 
