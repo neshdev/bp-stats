@@ -13,26 +13,21 @@ function BeerPongFactory($window, $rootScope, $cookies, localStorageService) {
         connection.logging = true;
         var authData = localStorageService.get('authorizationData');
         connection.qs = { 'Bearer': authData.token };
-
-        //document.cookie = "BearerToken=" + authData.token + "; path=/";
-        //$cookies.put('BearerToken', 'Bearer ' + authData.token)
-
-        //working
-        //$window.jQuery.ajaxSetup({
-        //    beforeSend: function (xhr) {
-        //        xhr.setRequestHeader('Authorization', 'Bearer ' + authData.token);
-        //    }
-        //});
-
         this.proxy = connection.createHubProxy('beerpongHub');
 
         //server pushes messages to client
-        this.proxy.on('userChanged', function (data) {
-            $rootScope.$emit("userChanged", data);
+        this.proxy.on('disconnect', function () {
+            connection.stop();
         });
 
-        //working
-        //connection.start({ transport: 'longPolling' })
+        this.proxy.on('joinedLobby', function (user) {
+            $rootScope.$emit("joinedLobby", user);
+        });
+
+        this.proxy.on('unjoinedLobby', function (user) {
+            $rootScope.$emit("unjoinedLobby", user);
+        });
+
         connection.start()
             .done(function () {
                 console.log('Now connected, connection ID=' + connection.id);
@@ -43,22 +38,18 @@ function BeerPongFactory($window, $rootScope, $cookies, localStorageService) {
     };
 
     //client pushes message to server
-    var addToRoom = function (roomName) {
-        this.proxy.invoke('addToRoom', roomName);
+    var joinLobby = function (roomName) {
+        this.proxy.invoke('joinLobby', roomName);
     };
 
     //client pushes message to server
-    var removeFromRoom = function (roomName) {
-        this.proxy.invoke('RemoveFromRoom', roomName);
+    var unjoinLobby = function (roomName) {
+        this.proxy.invoke('unjoinLobby', roomName);
     };
-
-
 
     return {
         init: init,
-        addToRoom: addToRoom,
-        removeFromRoom: removeFromRoom,
+        joinLobby: joinLobby,
+        unjoinLobby: unjoinLobby,
     };
-
-
 };

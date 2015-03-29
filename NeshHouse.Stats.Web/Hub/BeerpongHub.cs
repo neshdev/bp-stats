@@ -40,6 +40,16 @@ namespace NeshHouse.Stats.Web
                     db.Users.Add(user);
                 }
 
+                var otherConnections = user.Connections.Where(x => x.ConnectionID != Context.ConnectionId).ToList();
+                if (otherConnections != null)
+                {
+                    foreach (var item in otherConnections)
+	                {
+                        db.Connections.Remove(item);
+                        Clients.Client(item.ConnectionID).disconnect();
+	                }                    
+                }
+
                 user.Connections.Add(new Connection
                 {
                     ConnectionID = Context.ConnectionId,
@@ -56,39 +66,74 @@ namespace NeshHouse.Stats.Web
             using (var db = new HubContext())
             {
                 var connection = db.Connections.Find(Context.ConnectionId);
-                connection.Connected = false;
-                db.SaveChanges();
+                if (connection != null)
+                {
+                    db.Connections.Remove(connection);
+                    //connection.Connected = false;
+                    db.SaveChanges();
+                }
             }
             return base.OnDisconnected(stopCalled);
         }
 
-        public void AddToRoom(string roomName)
+        public void JoinLobby(string roomName)
         {
-            using (var db = new HubContext())
+            using (var context = new HubContext())
             {
-                var user = db.Users.Include(x => x.Connections).SingleOrDefault(x => x.UserName == Context.User.Identity.Name);
+                var connection = context.Connections.Single(x => x.ConnectionID == Context.ConnectionId);
+                var user = context.Users.Single(x => x.Connections.Any(y => y.ConnectionID == connection.ConnectionID));
 
-                if (user != null)
+
+                var room = context.Rooms.FirstOrDefault(x => x.RoomName == roomName);
+                if (room == null)
                 {
-                    Clients.All.userChanged(user.UserName);
+                    room = new ConversationRoom()
+                    {
+                        RoomName = roomName,
+                        Users = new List<User>() { },
+                    };
                 }
 
-                
-            }
+                var userExists = room.Users.Any(x => x.UserName == user.UserName);
 
-            Clients.All.msg(roomName);
+                if (!userExists)
+                {
+                    room.Users.Add(user);
+                }
+
+                Groups.Add(Context.ConnectionId, roomName);
+
+                Clients.OthersInGroup(roomName).joinedLobby(user);
+
+                context.SaveChanges();
+            }
         }
 
-        public void RemoveFromRoom(string roomName)
+        public void UnjoinLobby(string roomName)
         {
-            using (var db = new HubContext())
+            using (var context = new HubContext())
             {
-                var user = db.Users.Include(x => x.Connections).SingleOrDefault(x => x.UserName == Context.User.Identity.Name);
+                var connection = context.Connections.Single(x => x.ConnectionID == Context.ConnectionId);
+                var user = context.Users.Single(x => x.Connections.Any(y => y.ConnectionID == connection.ConnectionID));
 
-                if (user != null)
+                var room = context.Rooms.FirstOrDefault(x => x.RoomName == roomName);
+                if (room == null)
                 {
-                    Clients.All.userChanged(user.UserName);
+                    throw new Exception("Room does not exists");
                 }
+
+                var userExists = room.Users.Any(x => x.UserName == user.UserName);
+
+                if (!userExists)
+                {
+                    throw new Exception("User already not in room");
+                }
+
+                Groups.Remove(Context.ConnectionId, roomName);
+
+                Clients.OthersInGroup(roomName).unjoinedLobby(user);
+
+                context.SaveChanges();
             }
         }
     }
