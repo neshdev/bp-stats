@@ -78,6 +78,15 @@ namespace NeshHouse.Stats.Web
 
         public IEnumerable<UserGroup> JoinLobby(string group, string team)
         {
+            if (string.IsNullOrEmpty(group))
+            {
+                throw new Exception("Group cannot be empty");
+            }
+
+            if (string.IsNullOrEmpty(team)){
+                throw new Exception("Group cannot be empty");
+            }
+
             using (var context = new HubContext())
             {
                 var connection = context.Connections.Single(x => x.ConnectionID == Context.ConnectionId);
@@ -129,32 +138,42 @@ namespace NeshHouse.Stats.Web
             }
         }
 
-        public void UnjoinLobby(string roomName)
+        public void UnjoinLobby(string group)
         {
-            //using (var context = new HubContext())
-            //{
-            //    var connection = context.Connections.Single(x => x.ConnectionID == Context.ConnectionId);
-            //    var user = context.Users.Single(x => x.Connections.Any(y => y.ConnectionID == connection.ConnectionID));
+            if (string.IsNullOrEmpty(group))
+            {
+                throw new Exception("Group cannot be empty");
+            }
 
-            //    var room = context.Groups.FirstOrDefault(x => x.RoomName == roomName);
-            //    if (room == null)
-            //    {
-            //        throw new Exception("Room does not exists");
-            //    }
+            using (var context = new HubContext())
+            {
+                var connection = context.Connections.Single(x => x.ConnectionID == Context.ConnectionId);
+                var user = context.Users.Single(x => x.Connections.Any(y => y.ConnectionID == connection.ConnectionID));
 
-            //    var userExists = room.Users.Any(x => x.UserName == user.Name);
 
-            //    if (!userExists)
-            //    {
-            //        throw new Exception("User already not in room");
-            //    }
+                var groupRef = context.Groups.Include(x => x.UserGroups).FirstOrDefault(x => x.Name == group);
+                if (groupRef == null)
+                {
+                    throw new Exception("Group does not exists");
+                }
 
-            //    Groups.Remove(Context.ConnectionId, roomName);
+                var refUseGroup = groupRef.UserGroups.FirstOrDefault(x => x.UserName == user.Name);
 
-            //    Clients.OthersInGroup(roomName).unjoinedLobby(new { name = user.Name });
+                if (refUseGroup == null)
+                {
+                    throw new Exception("User is already not in group");
+                }
+                else
+                {
+                    context.UserGroups.Remove(refUseGroup);
+                }
 
-            //    context.SaveChanges();
-            //}
+                Groups.Remove(Context.ConnectionId, group);
+
+                Clients.Group(group).unjoinedLobby(refUseGroup);
+
+                context.SaveChanges();
+            }
         }
     }
 }

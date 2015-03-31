@@ -13,6 +13,13 @@ Array.prototype.pushIfNotExist = function (element, comparer) {
         this.push(element);
     }
 };
+Array.prototype.remove = function (element, comparer) {
+    for (var i = 0; i < this.length; i++) {
+        if (comparer(this[i])) {
+            this.splice(i, 1);
+        }
+    }
+};
 var Game;
 (function (Game) {
     var SearchController = (function () {
@@ -39,7 +46,21 @@ var Game;
                 console.log('Error joining lobby :' + err);
             };
             $scope.joinLobby = function (team) {
-                vm._beerpongHub.server.joinLobby(vm.$scope.roomName, team).then(joinLobbySuccess, joinLobbyError);
+                if (vm.$scope.roomName) {
+                    vm._beerpongHub.server.joinLobby(vm.$scope.roomName, team).then(joinLobbySuccess, joinLobbyError);
+                }
+                else {
+                    vm.$scope.message = 'Error: Please enter room name';
+                }
+            };
+            $scope.leaveLobby = function () {
+                if (vm.$scope.roomName) {
+                    vm._beerpongHub.server.unjoinLobby(vm.$scope.roomName);
+                    vm.$scope.userGroups = [];
+                    vm.$scope.gameFound = false;
+                    vm.$scope.roomName = '';
+                    vm.$scope.message = '';
+                }
             };
             $scope.$on('$destroy', function () {
                 $.connection.hub.stop();
@@ -64,8 +85,22 @@ var Game;
             this._beerpongHub.client.joinedLobby = function (ug) {
                 var that = _this;
                 that.$scope.$apply(function () {
+                    //remove user without looking at team
+                    that.$scope.userGroups.remove(ug, function (e) {
+                        return ug.groupName == e.groupName && ug.userName == e.userName;
+                    });
+                    //add user to team
                     that.$scope.userGroups.pushIfNotExist(ug, function (e) {
                         return ug.groupName === e.groupName && ug.team === e.team && ug.userName === e.userName;
+                    });
+                });
+            };
+            this._beerpongHub.client.unjoinedLobby = function (ug) {
+                var that = _this;
+                that.$scope.$apply(function () {
+                    //remove user without looking at team
+                    that.$scope.userGroups.remove(ug, function (e) {
+                        return ug.groupName == e.groupName && ug.userName == e.userName;
                     });
                 });
             };

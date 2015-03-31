@@ -112,3 +112,10 @@
 .nav-tabs-right > li  { display: inline-block; float: none; }
 
 .right-to-left li { float: right; }
+
+
+.vcenter {
+    display: inline-block;
+    vertical-align: middle;
+    float: none;
+}

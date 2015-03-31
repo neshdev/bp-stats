@@ -1,9 +1,11 @@
-﻿using Newtonsoft.Json;
+﻿using NeshHouse.Stats.Web.Migrations;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
+using System.Data.Entity.Migrations;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Web;
@@ -23,7 +25,8 @@ namespace NeshHouse.Stats.Web.Models
         public HubContext()
             : base("name=HubContext")
         {
-            Database.SetInitializer<HubContext>(new CreateDatabaseIfNotExists<HubContext>());
+            Database.SetInitializer<HubContext>(new MigrateDatabaseToLatestVersion<HubContext, Configuration>());
+
         }
 
         public DbSet<User> Users { get; set; }

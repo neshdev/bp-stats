@@ -3,6 +3,7 @@
 interface Array<T> {
     inArray(comparer: any): boolean;
     pushIfNotExist(element: any, comparer: any);
+    remove(element: any, comparer: any);
 }
 
 Array.prototype.inArray = function (comparer) {
@@ -20,10 +21,19 @@ Array.prototype.pushIfNotExist = function (element, comparer) {
     }
 };
 
+Array.prototype.remove = function(element , comparer) {
+    for (var i = 0; i < this.length; i++) {
+        if (comparer(this[i])) {
+            this.splice(i, 1);
+        }
+    }
+}
+
 
 interface BeerpongClient {
     disconnect();
     joinedLobby(user: Game.UserGroup);
+    unjoinedLobby(user: Game.UserGroup);
 }
 
 interface BeerpongServer {
@@ -44,7 +54,8 @@ module Game {
 
     interface ISearchControllerScope extends ng.IScope {
         roomName: string;
-        joinLobby(roomName: string);
+        joinLobby(team: string);
+        leaveLobby();
         userGroups: UserGroup[];
         gameFound: boolean;
         message: string;
@@ -76,14 +87,30 @@ module Game {
                 var that = this;
 
                 that.$scope.$apply(function () {
+
+                    //remove user without looking at team
+                    that.$scope.userGroups.remove(ug, function (e: UserGroup) {
+                        return ug.groupName == e.groupName && ug.userName == e.userName;
+                    });
+
+                    //add user to team
                     that.$scope.userGroups.pushIfNotExist(ug, function (e: UserGroup) {
                         return ug.groupName === e.groupName
                             && ug.team === e.team
                             && ug.userName === e.userName;
                     });
                 });
+            };
 
+            this._beerpongHub.client.unjoinedLobby = (ug: UserGroup) => {
+                var that = this;
 
+                that.$scope.$apply(function () {
+                    //remove user without looking at team
+                    that.$scope.userGroups.remove(ug, function (e: UserGroup) {
+                        return ug.groupName == e.groupName && ug.userName == e.userName;
+                    });
+                });
             };
 
             $.connection.hub.start().done(this.signalrRStarted).fail(this.signlarRFailed);
@@ -117,8 +144,23 @@ module Game {
             };
 
             $scope.joinLobby = (team: string) => {
-                vm._beerpongHub.server.joinLobby(vm.$scope.roomName, team).then(joinLobbySuccess, joinLobbyError);
+                if (vm.$scope.roomName) {
+                    vm._beerpongHub.server.joinLobby(vm.$scope.roomName, team).then(joinLobbySuccess, joinLobbyError);
+                }
+                else {
+                    vm.$scope.message = 'Error: Please enter room name';
+                }
             };
+
+            $scope.leaveLobby = () => {
+                if (vm.$scope.roomName) {
+                    vm._beerpongHub.server.unjoinLobby(vm.$scope.roomName);
+                    vm.$scope.userGroups = [];
+                    vm.$scope.gameFound = false;
+                    vm.$scope.roomName = '';
+                    vm.$scope.message = '';
+                }
+            }
 
             $scope.$on('$destroy', function () {
                 $.connection.hub.stop();
