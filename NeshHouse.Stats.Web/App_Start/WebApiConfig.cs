@@ -8,6 +8,8 @@ using System.Linq;
 using System.Net.Http.Formatting;
 using System.Reflection;
 using System.Web.Http;
+using System.Web.OData.Builder;
+using System.Web.OData.Extensions;
 
 namespace NeshHouse.Stats.Web
 {
@@ -26,7 +28,6 @@ namespace NeshHouse.Stats.Web
             var jsonFormatter = config.Formatters.OfType<JsonMediaTypeFormatter>().First();
             jsonFormatter.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
 
-
             var settings = new JsonSerializerSettings
             {
                 ContractResolver = new FilteredCamelCasePropertyNamesContractResolver
@@ -38,15 +39,16 @@ namespace NeshHouse.Stats.Web
                 }
             };
 
-            //var settings = new JsonSerializerSettings();
-            //settings.ContractResolver = new SignalRContractResolver();
             var serializer = JsonSerializer.Create(settings);
             GlobalHost.DependencyResolver.Register(typeof(JsonSerializer), () => serializer);
 
-            //var jsonNetSerializer = new JsonNetSerializer(serializerSettings);
-//            GlobalHost.DependencyResolver.Register(typeof(IJsonSerializer), () => jsonNetSerializer);
+            ODataModelBuilder builder = new ODataConventionModelBuilder();
+            builder.EntitySet<Game>("Games");
+            config.MapODataServiceRoute(
+                routeName: "ODataRoute"
+                , routePrefix: null,
+                model: builder.GetEdmModel());
 
-            //config.Formatters.JsonFormatter.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
         }
     }
 

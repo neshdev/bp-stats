@@ -23,9 +23,10 @@ Array.prototype.remove = function (element, comparer) {
 var Game;
 (function (Game) {
     var SearchController = (function () {
-        function SearchController($scope, localStorageService) {
+        function SearchController($scope, localStorageService, $location) {
             this.$scope = $scope;
             this.localStorageService = localStorageService;
+            this.$location = $location;
             var vm = this;
             $scope.userGroups = [];
             $scope.gameFound = false;
@@ -43,7 +44,9 @@ var Game;
                 });
             };
             var joinLobbyError = function (err) {
-                console.log('Error joining lobby :' + err);
+                vm.$scope.$apply(function () {
+                    $scope.message = err.description;
+                });
             };
             $scope.joinLobby = function (team) {
                 if (vm.$scope.roomName) {
@@ -61,6 +64,19 @@ var Game;
                     vm.$scope.roomName = '';
                     vm.$scope.message = '';
                 }
+            };
+            var onReportWinSuccess = function (data) {
+                vm.$scope.$apply(function () {
+                    vm.$location.path("/stats");
+                });
+            };
+            var onReportWinError = function (err) {
+                vm.$scope.$apply(function () {
+                    $scope.message = err.description;
+                });
+            };
+            $scope.reportWin = function (winningTeam) {
+                vm._beerpongHub.server.reportWin(vm.$scope.roomName, winningTeam).then(onReportWinSuccess, onReportWinError);
             };
             $scope.$on('$destroy', function () {
                 $.connection.hub.stop();
@@ -104,9 +120,17 @@ var Game;
                     });
                 });
             };
+            this._beerpongHub.client.confirmResults = function (gameResult) {
+                var that = _this;
+                that.$scope.$apply(function () {
+                    that.$location.path('/stats');
+                    //that.$scope.message = angular.toJson(gameResult);
+                    //show modal with countdown and navigate to stats
+                });
+            };
             $.connection.hub.start().done(this.signalrRStarted).fail(this.signlarRFailed);
         };
-        SearchController.$inject = ['$scope', 'localStorageService'];
+        SearchController.$inject = ['$scope', 'localStorageService', '$location'];
         return SearchController;
     })();
     Game.SearchController = SearchController;
@@ -129,5 +153,11 @@ var Game;
         return UserGroup;
     })();
     Game.UserGroup = UserGroup;
+    var GameResult = (function () {
+        function GameResult() {
+        }
+        return GameResult;
+    })();
+    Game.GameResult = GameResult;
 })(Game || (Game = {}));
 //# sourceMappingURL=searchController.js.map

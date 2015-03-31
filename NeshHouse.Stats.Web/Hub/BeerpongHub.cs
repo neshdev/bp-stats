@@ -92,7 +92,6 @@ namespace NeshHouse.Stats.Web
                 var connection = context.Connections.Single(x => x.ConnectionID == Context.ConnectionId);
                 var user = context.Users.Single(x => x.Connections.Any(y => y.ConnectionID == connection.ConnectionID));
 
-
                 var groupRef = context.Groups.Include(x=> x.UserGroups).FirstOrDefault(x => x.Name == group);
                 if (groupRef == null)
                 {
@@ -104,7 +103,18 @@ namespace NeshHouse.Stats.Web
 
                     context.Groups.Add(groupRef);
                 }
+                else
+                {
+                    if (groupRef.UserGroups.Any(x=> x.GameId.HasValue))
+                    {
+                        throw new Exception("Lobby name is taken. Lobby is pending for results.");
+                    }
 
+                    if (groupRef.UserGroups.Count > 4)
+                    {
+                        throw new Exception(string.Format("This is in only designed to handle 1v1 or 2v2. Only 4 players max allowed in lobby.", groupRef.UserGroups.Count));
+                    }
+                }
 
                 var refUseGroup = groupRef.UserGroups.FirstOrDefault(x => x.UserName == user.Name);
 
@@ -115,8 +125,6 @@ namespace NeshHouse.Stats.Web
                         Group = groupRef,
                         Team = team,
                         User = user,
-                        CreateDate = DateTime.Now,
-                        LastUpdatedDate = DateTime.Now,
                         IsConfirmed = false,
                     };
 
@@ -171,6 +179,101 @@ namespace NeshHouse.Stats.Web
                 Groups.Remove(Context.ConnectionId, group);
 
                 Clients.Group(group).unjoinedLobby(refUseGroup);
+
+                context.SaveChanges();
+            }
+        }
+
+        public void ReportWin(string group, string winningTeam)
+        {
+            if (string.IsNullOrEmpty(group))
+            {
+                throw new Exception("Group cannot be empty");
+            }
+
+            if (string.IsNullOrEmpty(winningTeam))
+            {
+                throw new Exception("winningTeam cannot be empty");
+            }
+
+            //block clients from reporting?
+
+            using (var context = new HubContext())
+            {
+                var connection = context.Connections.Single(x => x.ConnectionID == Context.ConnectionId);
+                var user = context.Users.Single(x => x.Connections.Any(y => y.ConnectionID == connection.ConnectionID));
+
+                var groupRef = context.Groups
+                                      .Include(x => x.UserGroups)
+                                      .Include("UserGroups.User")
+                                      .Include("UserGroups.User.Connections")
+                                      .FirstOrDefault(x => x.Name == group);
+                if (groupRef == null)
+                {
+                    throw new Exception("Group does not exists");
+                }
+                else
+                {
+                    if (groupRef.UserGroups.Any(x=> x.GameId.HasValue))
+                    {
+                        throw new Exception("Game already reported.");
+                    }
+
+                    if (!(groupRef.UserGroups.Count == 2 || groupRef.UserGroups.Count == 4))
+                    {
+                        throw new Exception(string.Format("This is in only designed to handle 1v1 or 2v2. Currently only {0} players in lobby", groupRef.UserGroups.Count));
+                    }
+
+                    //todo: also check if teams are unique
+                }
+
+                var refUseGroup = groupRef.UserGroups.FirstOrDefault(x => x.UserName == user.Name);
+
+                if (refUseGroup == null)
+                {
+                    throw new Exception("User is not in group");
+                }
+                else
+                {
+                    refUseGroup.IsConfirmed = true;
+                }
+
+                var game = new Game()
+                {
+                    GameResults = new List<GameResult>(),
+                    ReportDate = DateTime.Now,
+                    Status = GameStatus.PendingConfirmation,
+                };
+
+                foreach (var item in groupRef.UserGroups)
+                {
+                    var gameResult = new GameResult
+                                  {
+                                      UserName = item.UserName,
+                                      User = item.User,
+                                      Outcome = item.Team == winningTeam ? GameOutcome.Win : GameOutcome.Loss,
+                                  };
+
+                    game.GameResults.Add(gameResult);
+                    item.Game = game;
+
+                }
+
+                var refUserGroupOthers = groupRef.UserGroups.Where(x => x.UserName != user.Name);
+
+                foreach (var item in refUserGroupOthers)
+                {
+
+
+                    var activeConnectons = item.User.Connections.Where(x => x.Connected);
+                    foreach (var c in activeConnectons)
+                    {
+
+                        var gameResult = game.GameResults.FirstOrDefault(x => x.UserName == item.UserName);
+
+                        Clients.Client(c.ConnectionID).confirmResults(gameResult);
+                    }
+                }
 
                 context.SaveChanges();
             }

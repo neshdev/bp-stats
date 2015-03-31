@@ -34,11 +34,13 @@ interface BeerpongClient {
     disconnect();
     joinedLobby(user: Game.UserGroup);
     unjoinedLobby(user: Game.UserGroup);
+    confirmResults(gameResults : Game.GameResult);
 }
 
 interface BeerpongServer {
     joinLobby(group: string, team: string): JQueryPromise<Game.UserGroup[]>;
     unjoinLobby(roomName: string): JQueryPromise<void>;
+    reportWin(group: string, team: string): JQueryPromise<void>;
 }
 
 interface BeerpongHubProxy {
@@ -59,11 +61,12 @@ module Game {
         userGroups: UserGroup[];
         gameFound: boolean;
         message: string;
+        reportWin(team: string);
     }
 
     export class SearchController {
         private _beerpongHub: BeerpongHubProxy;
-        static $inject = ['$scope', 'localStorageService'];
+        static $inject = ['$scope', 'localStorageService', '$location'];
 
         private signalrRStarted() {
             console.log("Now connected, connection ID=" + $.connection.hub.id);
@@ -113,10 +116,23 @@ module Game {
                 });
             };
 
+            this._beerpongHub.client.confirmResults = (gameResult: GameResult) => {
+                var that = this;
+
+                that.$scope.$apply(function () {
+                    
+                    that.$location.path('/stats');
+
+                    //that.$scope.message = angular.toJson(gameResult);
+
+                    //show modal with countdown and navigate to stats
+                });
+            };
+
             $.connection.hub.start().done(this.signalrRStarted).fail(this.signlarRFailed);
         }
 
-        constructor(private $scope: ISearchControllerScope, private localStorageService: any) {
+        constructor(private $scope: ISearchControllerScope, private localStorageService: any, private $location: ng.ILocationService) {
 
             var vm = this;
             $scope.userGroups = [];
@@ -140,7 +156,10 @@ module Game {
             };
 
             var joinLobbyError = function (err) {
-                console.log('Error joining lobby :' + err);
+
+                vm.$scope.$apply(function () {
+                    $scope.message = err.description;
+                });
             };
 
             $scope.joinLobby = (team: string) => {
@@ -160,7 +179,23 @@ module Game {
                     vm.$scope.roomName = '';
                     vm.$scope.message = '';
                 }
-            }
+            };
+
+            var onReportWinSuccess = function (data) {
+                vm.$scope.$apply(function () {
+                    vm.$location.path("/stats");
+                });
+            };
+
+            var onReportWinError = function (err) {
+                vm.$scope.$apply(function () {
+                    $scope.message = err.description;
+                });
+            };
+
+            $scope.reportWin = (winningTeam: string) => {
+                vm._beerpongHub.server.reportWin(vm.$scope.roomName, winningTeam).then(onReportWinSuccess, onReportWinError);
+            };
 
             $scope.$on('$destroy', function () {
                 $.connection.hub.stop();
@@ -187,5 +222,12 @@ module Game {
         public groupName: string;
         public userName: string;
         public team: string;
+    }
+
+    export class GameResult {
+        public id: Int32Array;
+        public gameId: Int32Array;
+        public userName: string;
+        public outcome: any; //dont know what enum serialies into yet;
     }
 }
