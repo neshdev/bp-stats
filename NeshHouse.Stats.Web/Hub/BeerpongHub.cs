@@ -28,13 +28,13 @@ namespace NeshHouse.Stats.Web
             {
                 var user = db.Users
                     .Include(u => u.Connections)
-                    .SingleOrDefault(u => u.UserName == name);
+                    .SingleOrDefault(u => u.Name == name);
 
                 if (user == null)
                 {
                     user = new User
                     {
-                        UserName = name,
+                        Name = name,
                         Connections = new List<Connection>()
                     };
                     db.Users.Add(user);
@@ -76,7 +76,7 @@ namespace NeshHouse.Stats.Web
             return base.OnDisconnected(stopCalled);
         }
 
-        public void JoinLobby(string roomName)
+        public IEnumerable<UserGroup> JoinLobby(string group, string team)
         {
             using (var context = new HubContext())
             {
@@ -84,57 +84,77 @@ namespace NeshHouse.Stats.Web
                 var user = context.Users.Single(x => x.Connections.Any(y => y.ConnectionID == connection.ConnectionID));
 
 
-                var room = context.Rooms.FirstOrDefault(x => x.RoomName == roomName);
-                if (room == null)
+                var groupRef = context.Groups.Include(x=> x.UserGroups).FirstOrDefault(x => x.Name == group);
+                if (groupRef == null)
                 {
-                    room = new ConversationRoom()
+                    groupRef = new Group()
                     {
-                        RoomName = roomName,
-                        Users = new List<User>() { },
+                        Name = group,
+                        UserGroups = new List<UserGroup>(),
                     };
+
+                    context.Groups.Add(groupRef);
                 }
 
-                var userExists = room.Users.Any(x => x.UserName == user.UserName);
 
-                if (!userExists)
+                var refUseGroup = groupRef.UserGroups.FirstOrDefault(x => x.UserName == user.Name);
+
+                if (refUseGroup == null)
                 {
-                    room.Users.Add(user);
+                    refUseGroup = new UserGroup()
+                    {
+                        Group = groupRef,
+                        Team = team,
+                        User = user,
+                        CreateDate = DateTime.Now,
+                        LastUpdatedDate = DateTime.Now,
+                        IsConfirmed = false,
+                    };
+
+                    groupRef.UserGroups.Add(refUseGroup);
+                }
+                else
+                {
+                    refUseGroup.Team = team;
+                    refUseGroup.LastUpdatedDate = DateTime.Now;
                 }
 
-                Groups.Add(Context.ConnectionId, roomName);
+                Groups.Add(Context.ConnectionId, group);
 
-                Clients.OthersInGroup(roomName).joinedLobby(user);
+                Clients.Group(group).joinedLobby(refUseGroup);
 
                 context.SaveChanges();
+
+                return groupRef.UserGroups;
             }
         }
 
         public void UnjoinLobby(string roomName)
         {
-            using (var context = new HubContext())
-            {
-                var connection = context.Connections.Single(x => x.ConnectionID == Context.ConnectionId);
-                var user = context.Users.Single(x => x.Connections.Any(y => y.ConnectionID == connection.ConnectionID));
+            //using (var context = new HubContext())
+            //{
+            //    var connection = context.Connections.Single(x => x.ConnectionID == Context.ConnectionId);
+            //    var user = context.Users.Single(x => x.Connections.Any(y => y.ConnectionID == connection.ConnectionID));
 
-                var room = context.Rooms.FirstOrDefault(x => x.RoomName == roomName);
-                if (room == null)
-                {
-                    throw new Exception("Room does not exists");
-                }
+            //    var room = context.Groups.FirstOrDefault(x => x.RoomName == roomName);
+            //    if (room == null)
+            //    {
+            //        throw new Exception("Room does not exists");
+            //    }
 
-                var userExists = room.Users.Any(x => x.UserName == user.UserName);
+            //    var userExists = room.Users.Any(x => x.UserName == user.Name);
 
-                if (!userExists)
-                {
-                    throw new Exception("User already not in room");
-                }
+            //    if (!userExists)
+            //    {
+            //        throw new Exception("User already not in room");
+            //    }
 
-                Groups.Remove(Context.ConnectionId, roomName);
+            //    Groups.Remove(Context.ConnectionId, roomName);
 
-                Clients.OthersInGroup(roomName).unjoinedLobby(user);
+            //    Clients.OthersInGroup(roomName).unjoinedLobby(new { name = user.Name });
 
-                context.SaveChanges();
-            }
+            //    context.SaveChanges();
+            //}
         }
     }
 }

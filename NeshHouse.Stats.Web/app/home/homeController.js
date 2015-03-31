@@ -4,9 +4,16 @@
         .module('bp.core')
         .controller('homeController', HomeController);
 
-    HomeController.$inject = ['$scope','userService'];
+    HomeController.$inject = ['UserSettingsFactory'];
 
-    function HomeController($scope, userService) {
-        $scope.userName = userService.userName;
+    function HomeController(UserSettingsFactory) {
+        var vm = this;
+        vm.userName = '';
+
+        function activate() {
+            vm.userName = UserSettingsFactory.getUserName();
+        };
+
+        activate();
     };
 })();

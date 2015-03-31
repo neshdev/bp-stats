@@ -130,6 +130,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\PublishProfiles\NeshHouseStatsWeb.pubxml" />
+    <None Include="Scripts\linq-vsdoc.js" />
+    <Content Include="Scripts\linq.js" />
+    <Content Include="Scripts\linq.min.js" />
+    <Content Include="Scripts\underscore.js" />
+    <Content Include="Scripts\underscore.min.js" />
+    <Content Include="Scripts\underscore.min.map" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -153,14 +159,11 @@
     <Content Include="app2\views\orders.html" />
     <Content Include="app2\views\signup.html" />
     <Content Include="app\common\app.js" />
-    <Content Include="app\events\userService.js" />
+    <Content Include="app\viewbag\UserSettingsFactory.js" />
     <Content Include="app\game\beerPongFactory.js" />
     <Content Include="app\game\search.html" />
-    <Content Include="app\game\searchController.js" />
     <Content Include="app\common\IndexController.js" />
     <Content Include="app\filters\percent-filter.js" />
-    <Content Include="app\game\lobby.html" />
-    <Content Include="app\game\lobbyController.js" />
     <None Include="app\index.cshtml" />
     <Content Include="app\home\home.html" />
     <Content Include="app\home\homeController.js" />
@@ -1005,6 +1008,15 @@
     <Compile Include="Auth\AuthContext.cs" />
     <Compile Include="Auth\AuthRepository.cs" />
     <Compile Include="Hub\HubContext.cs" />
+    <Compile Include="Migrations\201503300620406_InitialCreate.cs" />
+    <Compile Include="Migrations\201503300620406_InitialCreate.Designer.cs">
+      <DependentUpon>201503300620406_InitialCreate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201503310414580_AuditColumnsHubContext.cs" />
+    <Compile Include="Migrations\201503310414580_AuditColumnsHubContext.Designer.cs">
+      <DependentUpon>201503310414580_AuditColumnsHubContext.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\BeerpongContext.cs" />
     <Compile Include="Models\Game.cs" />
     <Compile Include="Models\GamePlayer.cs" />
@@ -1024,7 +1036,7 @@
     <Folder Include="App_Data\" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="app\game\searchController1.ts" />
+    <TypeScriptCompile Include="app\game\searchController.ts" />
     <TypeScriptCompile Include="Scripts\typings\angularjs\angular-animate.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\angularjs\angular-cookies.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\angularjs\angular-mocks.d.ts" />
@@ -1033,7 +1045,18 @@
     <TypeScriptCompile Include="Scripts\typings\angularjs\angular-sanitize.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\angularjs\angular.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\jquery\jquery.d.ts" />
+    <TypeScriptCompile Include="Scripts\typings\linq\linq.d.ts" />
+    <TypeScriptCompile Include="Scripts\typings\linq\linq.jquery.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\signalr\signalr.d.ts" />
+    <TypeScriptCompile Include="Scripts\typings\underscore\underscore.d.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\201503300620406_InitialCreate.resx">
+      <DependentUpon>201503300620406_InitialCreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201503310414580_AuditColumnsHubContext.resx">
+      <DependentUpon>201503310414580_AuditColumnsHubContext.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
