@@ -44,24 +44,23 @@ namespace NeshHouse.Stats.Web
 
             ConfigureOuth(app);
 
-            //GlobalHost.DependencyResolver.Register(typeof(IUserIdProvider), () => new CustomUserIdProvider());
-
             app.Map("/signalr", map =>
             {
                 var hubConfig = new HubConfiguration()
                 {
                     EnableDetailedErrors = true,
-                };             
+                };
 
                 map.RunSignalR(hubConfig);
-                
+
             });
 
+            ODataConfig.Register(config);
             WebApiConfig.Register(config);
-            app.UseCors(Microsoft.Owin.Cors.CorsOptions.AllowAll);
-            app.UseWebApi(config);
-
+            SignalrConfig.Register(config);
             
+            app.UseCors(Microsoft.Owin.Cors.CorsOptions.AllowAll);
+            app.UseWebApi(config);            
         }
 
         public void ConfigureOuth(IAppBuilder app)

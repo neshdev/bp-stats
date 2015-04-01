@@ -105,6 +105,7 @@ namespace NeshHouse.Stats.Web
                 }
                 else
                 {
+                    //todo: only users who are part of the lobby can enter the lobby
                     if (groupRef.UserGroups.Any(x=> x.GameId.HasValue))
                     {
                         throw new Exception("Lobby name is taken. Lobby is pending for results.");
@@ -157,7 +158,6 @@ namespace NeshHouse.Stats.Web
             {
                 var connection = context.Connections.Single(x => x.ConnectionID == Context.ConnectionId);
                 var user = context.Users.Single(x => x.Connections.Any(y => y.ConnectionID == connection.ConnectionID));
-
 
                 var groupRef = context.Groups.Include(x => x.UserGroups).FirstOrDefault(x => x.Name == group);
                 if (groupRef == null)
@@ -227,15 +227,15 @@ namespace NeshHouse.Stats.Web
                     //todo: also check if teams are unique
                 }
 
-                var refUseGroup = groupRef.UserGroups.FirstOrDefault(x => x.UserName == user.Name);
+                var refUserGroup = groupRef.UserGroups.FirstOrDefault(x => x.UserName == user.Name);
 
-                if (refUseGroup == null)
+                if (refUserGroup == null)
                 {
                     throw new Exception("User is not in group");
                 }
                 else
                 {
-                    refUseGroup.IsConfirmed = true;
+                    refUserGroup.IsConfirmed = true;
                 }
 
                 var game = new Game()
