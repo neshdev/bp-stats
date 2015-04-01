@@ -43,10 +43,16 @@ namespace NeshHouse.Stats.Web
             GlobalHost.DependencyResolver.Register(typeof(JsonSerializer), () => serializer);
 
             ODataModelBuilder builder = new ODataConventionModelBuilder();
-            builder.EntitySet<Game>("Games");
+            builder.EntitySet<Game>("Game");
+            builder.EntitySet<GameResult>("GameResult");
+            builder.EntitySet<User>("User");
+            builder.EntitySet<UserGroup>("UserGroup").EntityType.HasKey(ug => new { ug.UserName, ug.GroupName }); ;
+            builder.EntitySet<Group>("Group");
+            builder.EntitySet<Connection>("Connection");
+
             config.MapODataServiceRoute(
-                routeName: "ODataRoute"
-                , routePrefix: null,
+                routeName: "odata"
+                , routePrefix: "odata",
                 model: builder.GetEdmModel());
 
         }
