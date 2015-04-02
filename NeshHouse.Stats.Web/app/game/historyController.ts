@@ -2,33 +2,35 @@
 /// <reference path="searchcontroller.ts" />
  
 
-module Beerpong {
+(function () {
+    angular.module('bp.core').controller('HistoryController', HistoryController);
 
-    interface HistoryScope extends ng.IScope {
-        games: Game[];
-        reload();
-    }
+    HistoryController.$inject = ['$scope', 'HistoryService' ];
 
-    export class HistoryController{
+    function HistoryController($scope: any, HistoryService: any) {
+        $scope.games = [];
+        $scope.message = '';
 
-        static $inject = ['$scope','HistoryService'];
-
-        constructor(private $scope: HistoryScope, private HistoryService: any) {
-            $scope.games = [];
-            
-            function activate() {
-                this.$scope.reload();
-            };
-
-            $scope.reload = function () {
-                var _this = this;
-                HistoryService.getGameHistory.then(function (data) {
-                    _this.$scope.games = data;
-                });
-            };
-
-            activate();
+        function activate() {
+            $scope.reload();
         }
+
+        $scope.reload = function () {
+
+            var success = function (response) {
+                $scope.games = response.data.value;
+            };
+
+            var error = function (err) {
+                $scope.message = JSON.stringify(err.data.error.message);
+            }
+
+            HistoryService.getGameHistory().then(success, error);
+        }
+
+        activate();
+
+
     }
 
-}
+})();

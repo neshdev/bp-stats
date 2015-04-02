@@ -1,1 +1,27 @@
-﻿
+﻿<div class="container-fluid" ng-controller="HistoryController">
+    <div ng-hide="message == ''" class="alert alert-danger">
+        {{message}}
+    </div>
+    <button class="btn btn-default" ng-click="reload()">Reload</button>
+    <accordion>
+        <accordion-group heading="{{g.id + '-' + g.reportDate}}" ng-repeat="g in games" class="panel-body-less">
+            <div class="row">
+                <ul class="list-group col-sm-12">
+                    <li class="list-group-item list-group-item-info">
+                        <span>Winners</span>
+                    </li>
+                    <li class="list-group-item" ng-repeat="gr in g.gameResults | filter : { outcome : 'Win' }">
+                        <span>{{ gr.userName }}</span>
+                    </li>
+                    <li class="list-group-item list-group-item-danger">
+                        <span>Losers</span>
+                    </li>
+                    <li class="list-group-item" ng-repeat="gr in g.gameResults | filter : { outcome : 'Loss' }">
+                        <span>{{ gr.userName }}</span>
+                    </li>
+                </ul>
+
+            </div>
+        </accordion-group>   
+    </accordion>
+</div>

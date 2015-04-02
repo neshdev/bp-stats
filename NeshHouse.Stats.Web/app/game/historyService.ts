@@ -1,27 +1,22 @@
 ﻿/// <reference path="searchcontroller.ts" />
 
 
-module Beerpong {
-    
-    export class HistoryService {
 
-        static $inject = ['$http', 'UserSettingsFactory']
 
-        constructor($http: ng.IHttpService, UserSettingsFactory: any) {
-            function getGameHistory() {
-                var that = this;
-                var success = function (data) {
-                    return data;
-                };
 
-                var error = function (err) {
-                    console.log(err);
-                };
+(function () {
 
-                return that.$http.get('/api/GameHistory?userName=' + UserSettingsFactory.userName ).then(success, error);
-            };
+    angular.module('bp.core').service('HistoryService', HistoryService);
+
+    HistoryService.$inject = ['$http', 'UserSettingsFactory'];
+
+    function HistoryService($http : ng.IHttpService, UserSettingsFactory : any) {
+        this.getGameHistory = function() {
+
+            var url = "/odata/Games?$expand=gameResults&$filter=gameResults/any(o: o/userName eq '" + UserSettingsFactory.getUserName() + "' ) and status eq NeshHouse.Stats.Web.Models.GameStatus'PendingConfirmation'";
+
+            return $http.get(url);
         }
     }
 
-    angular.module('bp.core').service('HistoryService', HistoryService);
-}
+})();
