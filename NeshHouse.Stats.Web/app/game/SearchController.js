@@ -20,8 +20,8 @@ Array.prototype.remove = function (element, comparer) {
         }
     }
 };
-var Game;
-(function (Game) {
+var Beerpong;
+(function (Beerpong) {
     var SearchController = (function () {
         function SearchController($scope, localStorageService, $location) {
             this.$scope = $scope;
@@ -133,31 +133,37 @@ var Game;
         SearchController.$inject = ['$scope', 'localStorageService', '$location'];
         return SearchController;
     })();
-    Game.SearchController = SearchController;
-    angular.module('bp.core').controller('SearchController', Game.SearchController);
+    Beerpong.SearchController = SearchController;
+    angular.module('bp.core').controller('SearchController', Beerpong.SearchController);
     var User = (function () {
         function User() {
         }
         return User;
     })();
-    Game.User = User;
+    Beerpong.User = User;
     var Group = (function () {
         function Group() {
         }
         return Group;
     })();
-    Game.Group = Group;
+    Beerpong.Group = Group;
     var UserGroup = (function () {
         function UserGroup() {
         }
         return UserGroup;
     })();
-    Game.UserGroup = UserGroup;
+    Beerpong.UserGroup = UserGroup;
     var GameResult = (function () {
         function GameResult() {
         }
         return GameResult;
     })();
-    Game.GameResult = GameResult;
-})(Game || (Game = {}));
-//# sourceMappingURL=searchController.js.map
+    Beerpong.GameResult = GameResult;
+    var Game = (function () {
+        function Game() {
+        }
+        return Game;
+    })();
+    Beerpong.Game = Game;
+})(Beerpong || (Beerpong = {}));
+//# sourceMappingURL=searchcontroller.js.map

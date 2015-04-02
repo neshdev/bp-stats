@@ -32,13 +32,13 @@ Array.prototype.remove = function(element , comparer) {
 
 interface BeerpongClient {
     disconnect();
-    joinedLobby(user: Game.UserGroup);
-    unjoinedLobby(user: Game.UserGroup);
-    confirmResults(gameResults : Game.GameResult);
+    joinedLobby(user: Beerpong.UserGroup);
+    unjoinedLobby(user: Beerpong.UserGroup);
+    confirmResults(gameResults : Beerpong.GameResult);
 }
 
 interface BeerpongServer {
-    joinLobby(group: string, team: string): JQueryPromise<Game.UserGroup[]>;
+    joinLobby(group: string, team: string): JQueryPromise<Beerpong.UserGroup[]>;
     unjoinLobby(roomName: string): JQueryPromise<void>;
     reportWin(group: string, team: string): JQueryPromise<void>;
 }
@@ -52,7 +52,7 @@ interface SignalR {
     beerpongHub: BeerpongHubProxy;
 }
 
-module Game {
+module Beerpong {
 
     interface ISearchControllerScope extends ng.IScope {
         roomName: string;
@@ -206,7 +206,7 @@ module Game {
     }
 
     angular.module('bp.core')
-        .controller('SearchController', Game.SearchController);
+        .controller('SearchController', Beerpong.SearchController);
 
     export class User {
         public name: string;
@@ -229,5 +229,12 @@ module Game {
         public gameId: Int32Array;
         public userName: string;
         public outcome: any; //dont know what enum serialies into yet;
+    }
+
+    export class Game {
+        public id: Int32Array;
+        public reportDate: Date;
+        public gameStatus: Int32Array;
+        public GameResult: GameResult[];
     }
 }
