@@ -67,7 +67,7 @@ var Beerpong;
             };
             var onReportWinSuccess = function (data) {
                 vm.$scope.$apply(function () {
-                    vm.$location.path("/stats");
+                    vm.$location.path("/history");
                 });
             };
             var onReportWinError = function (err) {
@@ -123,7 +123,7 @@ var Beerpong;
             this._beerpongHub.client.confirmResults = function (gameResult) {
                 var that = _this;
                 that.$scope.$apply(function () {
-                    that.$location.path('/stats');
+                    that.$location.path('/history');
                     //that.$scope.message = angular.toJson(gameResult);
                     //show modal with countdown and navigate to stats
                 });

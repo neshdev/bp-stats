@@ -17,7 +17,7 @@ namespace NeshHouse.Stats.Web.Controllers
     {
         HubContext db = new HubContext();
 
-        [EnableQuery]
+        [EnableQuery(PageSize=100)]
         public IQueryable<Game> Get()
         {
             return db.Games;

@@ -2,26 +2,43 @@
     <div ng-hide="message == ''" class="alert alert-danger">
         {{message}}
     </div>
-    <button class="btn btn-default" ng-click="reload()">Reload</button>
+    <button class="btn btn-default btn-block" ng-click="reload()">Reload</button>
     <accordion>
-        <accordion-group heading="{{g.id + '-' + g.reportDate}}" ng-repeat="g in games" class="panel-body-less">
+        <accordion-group ng-repeat="g in games" class="panel-body-less">
+            <accordion-heading>
+                <span>{{ g.id + " - " + g.extendObj.header }}</span>
+                <div class="pull-right btn-group btn-group-xs">
+                    <button ng-show="!g.extendObj.currentUsersGameResult.isConfirmed" class="btn btn-success btn-xs" ng-click="sendConfirmation(g, 'true')"><span class="glyphicon glyphicon-ok"></span></button>
+                    <button ng-show="!g.extendObj.currentUsersGameResult.isConfirmed" class="btn btn-danger btn-xs" ng-click="sendConfirmation(g, 'false')"><span class="glyphicon glyphicon-remove"></span></button>
+                </div>
+            </accordion-heading>
+
             <div class="row">
                 <ul class="list-group col-sm-12">
-                    <li class="list-group-item list-group-item-info">
+                    <li class="list-group-item list-group-item-success">
                         <span>Winners</span>
                     </li>
-                    <li class="list-group-item" ng-repeat="gr in g.gameResults | filter : { outcome : 'Win' }">
+                    <li class="list-group-item" ng-repeat="gr in g.gameResults | filter : { outcome : 'Win'}">
                         <span>{{ gr.userName }}</span>
+                        <div class="pull-right">
+                            <span ng-show="gr.isConfirmed" class="glyphicon glyphicon-thumbs-up"></span>
+                            <span ng-show="!gr.isConfirmed" class="glyphicon glyphicon-thumbs-down"></span>
+                        </div>
                     </li>
                     <li class="list-group-item list-group-item-danger">
                         <span>Losers</span>
                     </li>
-                    <li class="list-group-item" ng-repeat="gr in g.gameResults | filter : { outcome : 'Loss' }">
+                    <li class="list-group-item" ng-repeat="gr in g.gameResults | filter : { outcome : 'Loss'}">
                         <span>{{ gr.userName }}</span>
+                        <div class="pull-right">
+                            <span ng-show="gr.isConfirmed" class="glyphicon glyphicon-thumbs-up"></span>
+                            <span ng-show="!gr.isConfirmed" class="glyphicon glyphicon-thumbs-down"></span>
+                        </div>
                     </li>
                 </ul>
 
             </div>
-        </accordion-group>   
+        </accordion-group>
     </accordion>
+    <button class="btn btn-default btn-block" >Load More</button>
 </div>

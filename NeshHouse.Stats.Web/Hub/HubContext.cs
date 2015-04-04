@@ -115,9 +115,6 @@ namespace NeshHouse.Stats.Web.Models
         public string Team { get; set; }
 
         [JsonIgnore]
-        public bool IsConfirmed { get; set; }
-
-        [JsonIgnore]
         public int? GameId { get; set; }
 
         [ForeignKey("GameId")]
@@ -147,6 +144,8 @@ namespace NeshHouse.Stats.Web.Models
         public int GameId { get; set; }
 
         public string UserName { get; set; }
+
+        public bool IsConfirmed { get; set; }
 
         [JsonIgnore]
         [ForeignKey("GameId")]

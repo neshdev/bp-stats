@@ -76,6 +76,35 @@ namespace NeshHouse.Stats.Web
             return base.OnDisconnected(stopCalled);
         }
 
+
+        private void CleanLobby(string groupName, HubContext context)
+        {
+            var group = context.Groups
+                               .Include("UserGroups")
+                               .Include("UserGroups.Game")
+                               .Include("UserGroups.Game.GameResults")
+                               .SingleOrDefault(x => x.Name == groupName);
+            if (group != null)
+            {
+                var userGroupsInPending = group.UserGroups.Where(x => x.GameId != null);
+                if ( userGroupsInPending.Count() > 0  ){
+                    var ug = userGroupsInPending.First();
+                    var totalConfirmed = ug.Game.GameResults.Count(x => x.IsConfirmed == true);
+                    if (totalConfirmed == ug.Game.GameResults.Count)
+                    {
+                        ug.Game.Status = GameStatus.Closed;
+                        context.UserGroups.RemoveRange(userGroupsInPending);
+                        context.Groups.Remove(group);
+                        context.SaveChanges();
+                    }
+                    else
+                    {
+                        throw new Exception("Lobby currently in use.");
+                    }
+                }
+            }
+        }
+
         public IEnumerable<UserGroup> JoinLobby(string group, string team)
         {
             if (string.IsNullOrEmpty(group))
@@ -89,6 +118,8 @@ namespace NeshHouse.Stats.Web
 
             using (var context = new HubContext())
             {
+                CleanLobby(group, context);
+
                 var connection = context.Connections.Single(x => x.ConnectionID == Context.ConnectionId);
                 var user = context.Users.Single(x => x.Connections.Any(y => y.ConnectionID == connection.ConnectionID));
 
@@ -106,10 +137,10 @@ namespace NeshHouse.Stats.Web
                 else
                 {
                     //todo: only users who are part of the lobby can enter the lobby
-                    if (groupRef.UserGroups.Any(x=> x.GameId.HasValue))
-                    {
-                        throw new Exception("Lobby name is taken. Lobby is pending for results.");
-                    }
+                    //if (groupRef.UserGroups.Any(x=> x.GameId.HasValue))
+                    //{
+                    //    throw new Exception("Lobby name is taken. Lobby is pending for results.");
+                    //}
 
                     if (groupRef.UserGroups.Count > 4)
                     {
@@ -126,7 +157,6 @@ namespace NeshHouse.Stats.Web
                         Group = groupRef,
                         Team = team,
                         User = user,
-                        IsConfirmed = false,
                     };
 
                     groupRef.UserGroups.Add(refUseGroup);
@@ -233,10 +263,6 @@ namespace NeshHouse.Stats.Web
                 {
                     throw new Exception("User is not in group");
                 }
-                else
-                {
-                    refUserGroup.IsConfirmed = true;
-                }
 
                 var game = new Game()
                 {
@@ -252,23 +278,23 @@ namespace NeshHouse.Stats.Web
                                       UserName = item.UserName,
                                       User = item.User,
                                       Outcome = item.Team == winningTeam ? GameOutcome.Win : GameOutcome.Loss,
+                                      IsConfirmed = false,
                                   };
 
                     game.GameResults.Add(gameResult);
                     item.Game = game;
-
                 }
+
+                var currentUserGameResults = game.GameResults.Where(x => x.UserName == user.Name).First();
+                currentUserGameResults.IsConfirmed = true;
 
                 var refUserGroupOthers = groupRef.UserGroups.Where(x => x.UserName != user.Name);
 
                 foreach (var item in refUserGroupOthers)
                 {
-
-
                     var activeConnectons = item.User.Connections.Where(x => x.Connected);
                     foreach (var c in activeConnectons)
                     {
-
                         var gameResult = game.GameResults.FirstOrDefault(x => x.UserName == item.UserName);
 
                         Clients.Client(c.ConnectionID).confirmResults(gameResult);

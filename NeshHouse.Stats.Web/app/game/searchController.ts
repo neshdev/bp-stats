@@ -121,7 +121,7 @@ module Beerpong {
 
                 that.$scope.$apply(function () {
                     
-                    that.$location.path('/stats');
+                    that.$location.path('/history');
 
                     //that.$scope.message = angular.toJson(gameResult);
 
@@ -183,7 +183,7 @@ module Beerpong {
 
             var onReportWinSuccess = function (data) {
                 vm.$scope.$apply(function () {
-                    vm.$location.path("/stats");
+                    vm.$location.path("/history");
                 });
             };
 
