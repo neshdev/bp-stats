@@ -40,13 +40,13 @@ namespace NeshHouse.Stats.Web.Models
 
                     // modify updated date and updated by column for 
                     // adds of updates.
-                    auditableEntity.Entity.LastUpdatedDate = DateTime.Now;
+                    auditableEntity.Entity.LastUpdatedDate = DateTimeOffset.Now;
 
                     // pupulate created date and created by columns for
                     // newly added record.
                     if (auditableEntity.State == EntityState.Added)
                     {
-                        auditableEntity.Entity.CreateDate = DateTime.Now;
+                        auditableEntity.Entity.CreateDate = DateTimeOffset.Now;
                     }
                     else
                     {
@@ -124,8 +124,29 @@ namespace NeshHouse.Stats.Web.Models
     public class Game : Auditable
     {
         public int Id { get; set; }
-        public DateTime ReportDate { get; set; }
+        public DateTimeOffset ReportDate { get; set; }
         public GameStatus Status { get; set; }
+
+        [Column("Matchup")]
+        public string MatchupString
+        {
+            get
+            {
+                return Matchup.ToString();
+            }
+            private set
+            {
+                this.Matchup = EnumExtensions.ParseEnum<Matchup>(value);
+            }
+        }
+
+        [NotMapped]
+        public Matchup Matchup
+        {
+            get;
+            set;
+        }
+
         public virtual ICollection<GameResult> GameResults { get; set; }
     }
 
@@ -146,7 +167,7 @@ namespace NeshHouse.Stats.Web.Models
         public string UserName { get; set; }
 
         public bool IsConfirmed { get; set; }
-
+        
         [JsonIgnore]
         [ForeignKey("GameId")]
         public Game Game { get; set; }
@@ -160,18 +181,32 @@ namespace NeshHouse.Stats.Web.Models
 
     public enum GameOutcome
     {
-        Win,
         Loss,
+        Win,
+    }
+
+    public enum Matchup
+    {
+        OneOnOne,
+        TwoOnTwo,
     }
 
     public abstract class Auditable
     {
         [JsonIgnore]
         //[Required, DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-        public DateTime? CreateDate { get; set; }
+        public DateTimeOffset? CreateDate { get; set; }
 
         [JsonIgnore]
         //[Required, DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-        public DateTime? LastUpdatedDate { get; set; }
+        public DateTimeOffset? LastUpdatedDate { get; set; }
+    }
+
+    public class EnumExtensions
+    {
+        public static T ParseEnum<T>(string value)
+        {
+            return (T)Enum.Parse(typeof(T), value, true);
+        }
     }
 }

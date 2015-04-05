@@ -5,9 +5,9 @@
         .module('bp.core')
         .controller('indexController', IndexController);
 
-    IndexController.$inject = ['$scope', 'authService'];
+    IndexController.$inject = ['$scope', '$location', 'authService'];
 
-    function IndexController($scope, authService) {
+    function IndexController($scope, $location, authService) {
         $scope.logOut = function () {
             authService.logOut();
             $location.path('/rankings');

@@ -37,7 +37,7 @@
         <div class="col-sm-6 col-md-4">
             <ul class="list-group">
                 <li class="list-group-item list-group-item-info" ng-repeat="user in userGroups | filter : { team : 'blue' }">
-                    <span>{{ user.userName }}</span>   <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <span>{{ user.userName }}</span>   <button type="button" ng-click="leaveLobby()" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 </li>
             </ul>
         </div>

@@ -12,7 +12,8 @@ using System.Web.OData;
 
 namespace NeshHouse.Stats.Web.Controllers
 {
-    //todo: [Authorize]
+    //todo: 
+    //[Authorize]
     public class GamesController : ODataController
     {
         HubContext db = new HubContext();

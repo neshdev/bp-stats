@@ -1,19 +1,14 @@
 ﻿/// <reference path="historyservice.ts" />
 /// <reference path="searchcontroller.ts" />
- 
-
 (function () {
-    angular.module('bp.core').controller('HistoryController', HistoryController);
+    angular.module("bp.core").controller("HistoryController", HistoryController);
 
-    HistoryController.$inject = ['$scope', 'HistoryService', 'UserSettingsFactory'];
+    HistoryController.$inject = ["$scope", "HistoryService", "UserSettingsFactory"];
 
     function HistoryController($scope: any, HistoryService: any, UserSettingsFactory: any) {
-
-        var vm = this;
-
         $scope.games = [];
-        $scope.message = '';
-        $scope.currentUserName = '';
+        $scope.message = "";
+        $scope.currentUserName = "";
         $scope.reload = reload;
         $scope.sendConfirmation = sendConfirmation;
 
@@ -21,11 +16,11 @@
 
             var success = function (response) {
                 var currentUser = $scope.currentUserName;
-                var games = response.data.value
+                var games = response.data.value;
 
                 for (var i = 0; i < games.length; i++) {
                     var game = games[i];
-                    var header = '';
+                    var header = "";
                     var currentUsersGameResults;
                     var isWinningUser = false;
                     var winners = [];
@@ -57,7 +52,7 @@
                     game.extendObj = extendObj;
                 }
                 $scope.games = games;
-            }
+            };
 
 
 
@@ -65,7 +60,7 @@
 
             var error = function (err) {
                 $scope.message = JSON.stringify(err.data.error.message);
-            }
+            };
 
             HistoryService.getGameHistory().then(success, error);
 
@@ -77,17 +72,15 @@
         }
 
         function sendConfirmation(game, isConfirmed) {
-
-            var _game = gameResult;
             var gameResult = game.extendObj.currentUsersGameResult;
             gameResult.isConfirmed = isConfirmed;
 
             var success = function (data) {
-                //todo: what should we do here
+                // todo: what should we do here
             };
 
             var error = function (err) {
-                //todo: remove whole error
+                // todo: remove whole error
                 $scope.message = JSON.stringify(err);
             };
 

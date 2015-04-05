@@ -154,9 +154,11 @@ namespace NeshHouse.Stats.Web
                 {
                     refUseGroup = new UserGroup()
                     {
+                        GroupName = groupRef.Name,
                         Group = groupRef,
                         Team = team,
                         User = user,
+                        UserName = user.Name,
                     };
 
                     groupRef.UserGroups.Add(refUseGroup);
@@ -164,7 +166,7 @@ namespace NeshHouse.Stats.Web
                 else
                 {
                     refUseGroup.Team = team;
-                    refUseGroup.LastUpdatedDate = DateTime.Now;
+                    refUseGroup.LastUpdatedDate = DateTimeOffset.Now;
                 }
 
                 Groups.Add(Context.ConnectionId, group);
@@ -263,13 +265,17 @@ namespace NeshHouse.Stats.Web
                 {
                     throw new Exception("User is not in group");
                 }
+                var matchUp = groupRef.UserGroups.Count == 4 ? Matchup.TwoOnTwo : Matchup.OneOnOne;
 
                 var game = new Game()
                 {
                     GameResults = new List<GameResult>(),
-                    ReportDate = DateTime.Now,
+                    ReportDate = DateTimeOffset.Now,
                     Status = GameStatus.PendingConfirmation,
+                    Matchup = matchUp,
                 };
+
+                
 
                 foreach (var item in groupRef.UserGroups)
                 {

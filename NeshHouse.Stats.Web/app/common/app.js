@@ -2,6 +2,9 @@
     'use strict';
 
     angular.module('bp.core', ['ngRoute', 'ngCookies', 'LocalStorageModule', 'angular-loading-bar', 'ui.bootstrap'])
+            .config(function ($httpProvider) {
+                $httpProvider.interceptors.push('authInterceptorService');
+            })
            .config(['$routeProvider', function ($routeProvider) {
                $routeProvider
                    .when('/home', { templateUrl: 'home/home.html' })

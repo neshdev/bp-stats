@@ -1,7 +1,6 @@
 ﻿'use strict';
 angular.module('bp.core').factory('authService', ['$http', '$q', 'localStorageService', function ($http, $q, localStorageService) {
 
-    var serviceBase = 'http://localhost:54648/';
     var authServiceFactory = {};
 
     var _authentication = {
@@ -13,7 +12,7 @@ angular.module('bp.core').factory('authService', ['$http', '$q', 'localStorageSe
 
         _logOut();
         
-        return $http.post(serviceBase + 'api/account/register', registration);
+        return $http.post('/api/account/register', registration);
 
     };
 
@@ -23,7 +22,7 @@ angular.module('bp.core').factory('authService', ['$http', '$q', 'localStorageSe
 
         var deferred = $q.defer();
 
-        $http.post(serviceBase + 'token', data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }).success(function (response) {
+        $http.post('/token', data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }).success(function (response) {
 
             localStorageService.set('authorizationData', { token: response.access_token, userName: loginData.userName });
 
