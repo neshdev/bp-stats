@@ -29,6 +29,7 @@
                         <li ng-hide="!authentication.isAuth"><a href="#/search">Search</a></li>
                         <li><a href="#/rankings">Rankings</a></li>
                         <li ng-hide="!authentication.isAuth"><a href="#/stats">My Stats</a></li>
+                        <li ng-hide="!authentication.isAuth"><a href="#/pieStats">Pie Stats</a></li>
                         <li ng-hide="!authentication.isAuth"><a href="#/history">History</a></li>
                         <li ng-hide="!authentication.isAuth"><a href="#/login" ng-click="logOut()">Logout</a></li>
                         <li ng-hide="authentication.isAuth"><a href="#/login">Login</a></li>
@@ -71,16 +72,19 @@
     <script src="~/app/stats/rankingsService.js"></script>
     <script src="~/app/viewbag/UserSettingsFactory.js"></script>
     <script src="~/app/game/historyService.js"></script>
+    <script src="~/app/services/d3.factory.js"></script>
 
     <script src="~/app/filters/percent-filter.js"></script>
+    <script src="~/app/stats/piechart.directive.js"></script>
 
     <script src="~/app/common/IndexController.js"></script>
     <script src="~/app/home/homeController.js"></script>
     <script src="~/app/login/loginController.js"></script>
     <script src="~/app/login/signupController.js"></script>
     <script src="~/app/stats/rankingsController.js"></script>
-    <script src="~/app/stats/statsController.js"></script>
     <script src="~/app/game/searchController.js"></script>
     <script src="~/app/game/historyController.js"></script>
+    <script src="~/app/stats/statsController1.js"></script>
+    <script src="~/app/stats/pieStats.controller.js"></script>
 </body>
 </html>

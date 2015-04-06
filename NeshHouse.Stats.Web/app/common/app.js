@@ -1,7 +1,7 @@
 ﻿(function () {
     'use strict';
 
-    angular.module('bp.core', ['ngRoute', 'ngCookies', 'LocalStorageModule', 'angular-loading-bar', 'ui.bootstrap'])
+    angular.module('bp.core', ['ngRoute', 'ngCookies', 'LocalStorageModule', 'angular-loading-bar', 'ui.bootstrap', 'd3'])
             .config(function ($httpProvider) {
                 $httpProvider.interceptors.push('authInterceptorService');
             })
@@ -12,6 +12,7 @@
                    .when('/history', { templateUrl: 'game/history.html' })
                    .when('/rankings', { templateUrl: 'stats/rankings.html' })
                    .when('/stats', { templateUrl: 'stats/stats.html' })
+                   .when('/pieStats', { templateUrl: 'stats/pieStats.html' })
                    .when('/login', { templateUrl: 'login/login.html' })
                    .when('/signup', { templateUrl: 'login/signup.html' })
                    .otherwise({ redirectTo: '/rankings' });
