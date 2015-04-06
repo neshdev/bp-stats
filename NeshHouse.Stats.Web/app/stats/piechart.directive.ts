@@ -1,4 +1,13 @@
-﻿interface IPieChartScope extends ng.IScope {
+﻿interface ID3Service {
+    d3(): JQueryPromise<D3.Base>;
+}
+
+interface HTMLElement {
+    innerWidth: any;
+    innerHeight: any;
+}
+
+interface IPieChartScope extends ng.IScope {
     data: any;
     render(data);
 };
@@ -20,52 +29,57 @@
             link: function (scope: IPieChartScope, iElement: ng.IAugmentedJQuery, iAttrs: ng.IAttributes) {
                 d3Service.d3().then(function (d3: D3.Base) {
                     
-                    var width = 360;
-                    var height = 360;
+                    var color = d3.scale.ordinal().range(['#dff0d8', '#f2dede', '#B3F2C9', '#528C18', '#C3F25C']);
+                    var width = 300;
+                    var height = 300;
                     var radius = Math.min(width, height) / 2;
 
-                    var color = d3.scale.category20b();
-
-                    var svg = d3.select(iElement[0])
-                        .append("svg")
-                        .attr("class", "center-block")
-                        .attr("width", width)
-                        .attr("height", height)
-                        .append('g')
-                        .attr('transform', 'translate(' + (width / 2) + "," + (height / 2) + ')');
-                        
-                    scope.$watch(
-                        function () {
-                            return angular.element(window)[0].innerWidth;
-                        }
-                        , function () {
-                            return scope.render(scope.data);
-                        });
+                    var area = d3.select(iElement[0]).append('svg')
+                        .attr('width', width)
+                        .attr('height', height)
+                        .attr('class', 'center-block');
 
                     scope.$watch('data', function (newVals, oldVals) {
                         return scope.render(newVals);
                     }, true);
 
                     scope.render = function (data) {
-                        //svg.selectAll("*").remove();
+                        area.selectAll("*").remove();
                         
+                        var dataset = data;
+
+                        var pieGroup = area.append('g')
+                                            .attr('transform', 'translate(' + (width / 2) + ',' + (height / 2) + ')');
+                        var arc = d3.svg.arc()
+                            .innerRadius(0)
+                            .outerRadius(radius);
+
                         var arc = d3.svg.arc()
                             .outerRadius(radius);
 
                         var pie = d3.layout.pie()
-                            .value(function (d) {
-                                return d.count;
-                            })
-                            .sort(null);
-
-                        var path = svg.selectAll('path')
-                            .data(pie(data))
+                            .value(function (d) { return d.count; })
+                        var arcs = pieGroup.selectAll('.arc')
+                            .data(pie(dataset))
                             .enter()
-                            .append('path')
+                            .append('g')
+                            .attr('class', 'arc');
+
+                        arcs.append('path')
                             .attr('d', arc)
-                            .attr('fill', function (d, i) {
+                            .attr('fill', function (d) {
                                 return color(d.data.label);
-                        });
+                            });
+
+                        arcs.append('text')
+                            .attr('transform', function (d) {
+                                    d.innerRadius = 0;
+                                    d.outerRadius = radius;
+                                return 'translate(' + arc.centroid(d) + ')';
+                            })
+                            .attr('text-anchor', 'middle')
+                            .attr('font-size', '1em')
+                            .text(function (d) { return d.data.label + " - "  + d.data.count; });
 
                     };
                 });

@@ -1,3 +1,28 @@
-﻿<div class="row" ng-controller="StatsController">
-    <bar-chart data="d3Data"></bar-chart>
+﻿<div class="container" ng-controller="StatsController">
+    <div class="row">
+
+        <div ng-hide="message == ''" class="alert alert-danger">
+            {{message}}
+        </div>
+
+        <div ng-show="showOneOnOne" class="col-sm-6 center-block">
+
+            <div class="panel panel-primary">
+                <div class="panel-heading">1v1</div>
+                <div class="panel-body">
+                    <pie-chart class="center-block" data="data.oneOnOne"></pie-chart>
+                </div>
+            </div>
+
+        </div>
+        <div ng-show="showTwoOnTwo" class="col-sm-6 center-block">
+
+            <div class="panel panel-primary">
+                <div class="panel-heading">2v2</div>
+                <div class="panel-body">
+                    <pie-chart class="center-block" data="data.twoOnTwo"></pie-chart>
+                </div>
+            </div>            
+        </div>
+    </div>
 </div>

@@ -126,26 +126,8 @@ namespace NeshHouse.Stats.Web.Models
         public int Id { get; set; }
         public DateTimeOffset ReportDate { get; set; }
         public GameStatus Status { get; set; }
-
-        [Column("Matchup")]
-        public string MatchupString
-        {
-            get
-            {
-                return Matchup.ToString();
-            }
-            private set
-            {
-                this.Matchup = EnumExtensions.ParseEnum<Matchup>(value);
-            }
-        }
-
-        [NotMapped]
-        public Matchup Matchup
-        {
-            get;
-            set;
-        }
+        
+        public Matchup Matchup { get; set; }
 
         public virtual ICollection<GameResult> GameResults { get; set; }
     }
@@ -156,6 +138,12 @@ namespace NeshHouse.Stats.Web.Models
         Rejected,
         Review,
         Closed,
+    }
+
+    public enum Matchup
+    {
+        OneOnOne = 1,
+        TwoOnTwo = 2,
     }
 
     public class GameResult : Auditable
@@ -183,12 +171,6 @@ namespace NeshHouse.Stats.Web.Models
     {
         Loss,
         Win,
-    }
-
-    public enum Matchup
-    {
-        OneOnOne,
-        TwoOnTwo,
     }
 
     public abstract class Auditable

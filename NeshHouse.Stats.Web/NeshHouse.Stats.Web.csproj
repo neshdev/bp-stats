@@ -152,7 +152,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\PublishProfiles\NeshHouseStatsWeb.pubxml" />
-    <Content Include="app\stats\pieStats.html" />
     <Content Include="app\stats\stats.html" />
     <Content Include="Scripts\d3\d3.js" />
     <Content Include="Scripts\d3\d3.min.js" />
@@ -1060,8 +1059,8 @@
     <TypeScriptCompile Include="app\game\searchController.ts" />
     <TypeScriptCompile Include="app\services\d3.factory.ts" />
     <TypeScriptCompile Include="app\stats\piechart.directive.ts" />
-    <TypeScriptCompile Include="app\stats\pieStats.controller.ts" />
-    <TypeScriptCompile Include="app\stats\statsController1.ts" />
+    <TypeScriptCompile Include="app\stats\stats.controller.ts" />
+    <TypeScriptCompile Include="app\stats\stats.service.ts" />
     <TypeScriptCompile Include="Scripts\typings\angular-ui-router\angular-ui-router.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\angularjs\angular-animate.d.ts" />
     <TypeScriptCompile Include="Scripts\typings\angularjs\angular-cookies.d.ts" />
