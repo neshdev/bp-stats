@@ -23,6 +23,7 @@ namespace NeshHouse.Stats.Web
             builder.EntitySet<UserGroup>("UserGroups");
             builder.EntitySet<Game>("Games");
             builder.EntitySet<GameResult>("GameResults");
+            builder.EntitySet<UserRating>("UserRatings");
             builder.EntityType<UserGroup>().HasKey(x => new { x.UserName, x.GroupName });
             builder.EnableLowerCamelCase();
 

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Moserware.Skills;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -67,7 +68,8 @@ namespace NeshHouse.Stats.Web.Models
 
         public DbSet<Game> Games { get; set; }
         public DbSet<GameResult> GameResults { get; set; }
-    
+
+        public DbSet<UserRating> UserRatings { get; set; }
     }
 
 
@@ -128,6 +130,8 @@ namespace NeshHouse.Stats.Web.Models
         public GameStatus Status { get; set; }
         
         public Matchup Matchup { get; set; }
+
+        public double MatchQuality { get; set; }
 
         public virtual ICollection<GameResult> GameResults { get; set; }
     }
@@ -190,5 +194,90 @@ namespace NeshHouse.Stats.Web.Models
         {
             return (T)Enum.Parse(typeof(T), value, true);
         }
+    }
+
+    public static class UserRatingExtensions
+    {
+        public static UserRating FindAddUserRatingifNotExists(this HubContext context, User user)
+        {
+            UserRating rating = context.UserRatings.FirstOrDefault(x => x.Name == user.Name);
+            if (rating == null)
+            {
+                var gameInfo = GameInfo.DefaultGameInfo;
+                
+                rating = new UserRating
+                {
+                    User = user,
+                    Name = user.Name,
+                    ConservativeRating = gameInfo.DefaultRating.ConservativeRating,
+                    Mean = gameInfo.DefaultRating.Mean,
+                    StandardDeviation = gameInfo.DefaultRating.StandardDeviation,
+                };
+                context.UserRatings.Add(rating);
+            }
+            return rating;
+        }
+
+        public static void EvaluateRating(HubContext context, Game game, IEnumerable<User> winners, IEnumerable<User> losers)
+        {
+            var winningTeam = new Team<Player<UserRating>>();
+            foreach (var item in winners)
+            {
+                var userRating = context.FindAddUserRatingifNotExists(item);
+                var player = new Player<UserRating>(userRating);
+                winningTeam.AddPlayer(player, new Rating(userRating.Mean, userRating.StandardDeviation, userRating.ConservativeRating));
+            }
+
+            var losingTeam = new Team<Player<UserRating>>();
+            foreach (var item in losers)
+            {
+                var userRating = context.FindAddUserRatingifNotExists(item);
+                var player = new Player<UserRating>(userRating);
+                losingTeam.AddPlayer(player, new Rating(userRating.Mean, userRating.StandardDeviation, userRating.ConservativeRating));
+            }
+            
+            var teams = Teams.Concat(winningTeam, losingTeam);
+
+            var gameInfo = GameInfo.DefaultGameInfo;
+
+            double matchQuality = TrueSkillCalculator.CalculateMatchQuality(gameInfo, teams);
+
+            game.MatchQuality = matchQuality;
+
+            var newRatings = TrueSkillCalculator.CalculateNewRatings(gameInfo, teams, 1, 2);
+
+            foreach (var item in newRatings)
+            {
+                var userRating = item.Key.Id;
+                var rating = item.Value;
+                userRating.ConservativeRating = rating.ConservativeRating;
+                userRating.Mean = rating.Mean;
+                userRating.StandardDeviation = rating.StandardDeviation;
+            }
+        } 
+    }
+
+    public class UserRating
+    {
+        public int Id { get; set; }
+
+        public string Name { get; set; }
+
+        [ForeignKey("Name")]
+        public User User { get; set; }
+
+        public double Mean { get; set; }
+        public double StandardDeviation { get; set; }
+        public double ConservativeRating { get; set; }
+    }
+
+    public class Ranking
+    {
+        public string UserName { get; set; }
+        public int Wins { get; set; }
+        public int Total { get; set; }
+        public double Mean { get; set; }
+        public double StandardDeviation { get; set; }
+        public double ConservativeRating { get; set; }
     }
 }

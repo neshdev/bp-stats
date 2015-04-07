@@ -99,6 +99,9 @@
     <Reference Include="Microsoft.Spatial">
       <HintPath>..\packages\Microsoft.Spatial.6.10.0\lib\portable-net40+sl5+wp8+win8+wpa\Microsoft.Spatial.dll</HintPath>
     </Reference>
+    <Reference Include="Moserware.Skills">
+      <HintPath>..\packages\Moserware.Skills.1.0.0.1\lib\net35\Moserware.Skills.dll</HintPath>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.6.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -153,6 +156,8 @@
   <ItemGroup>
     <None Include="Properties\PublishProfiles\NeshHouseStatsWeb.pubxml" />
     <Content Include="app\stats\stats.html" />
+    <Content Include="License.txt" />
+    <Content Include="README.txt" />
     <Content Include="Scripts\d3\d3.js" />
     <Content Include="Scripts\d3\d3.min.js" />
     <Content Include="Scripts\d3\LICENSE" />
@@ -205,8 +210,8 @@
     <Content Include="app\settings\settingsController.html" />
     <Content Include="app\settings\settingsController.js" />
     <Content Include="app\stats\rankings.html" />
-    <Content Include="app\stats\rankingsController.js" />
-    <Content Include="app\stats\rankingsService.js" />
+    <Content Include="app\stats\rankings.controller.js" />
+    <Content Include="app\stats\rankings.service.js" />
     <Content Include="Content\bootstrap-theme.css" />
     <Content Include="Content\bootstrap-theme.min.css" />
     <Content Include="Content\bootstrap.css" />
@@ -1033,6 +1038,7 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\GameResultsController.cs" />
     <Compile Include="Controllers\GamesController.cs" />
+    <Compile Include="Controllers\RankingsController.cs" />
     <Compile Include="Helpers\FilteredCamelCasePropertyNamesContractResolver.cs" />
     <Compile Include="Helpers\SignalRContractResolver.cs" />
     <Compile Include="Hub\BeerpongHub.cs" />

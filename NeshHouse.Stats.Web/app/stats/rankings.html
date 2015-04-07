@@ -1,4 +1,4 @@
-﻿<div class="container-fluid" ng-controller="rankingsController">
+﻿<div class="container" ng-controller="RankingsController">
 
     <div class="alert alert-info col-sm-12">
         <p class="info">Total {{rankings.length}} players on current Beep Pong</p>
@@ -7,21 +7,23 @@
         <div class="table-responsive col-sm-12">
             <table class="table table-striped table-bordered table-hover table-condensed">
                 <tr>
-                    <th>Rank</th>
-                    <th>Alias</th>
-                    <th>Wins</th>
-                    <th>Losses</th>
-                    <th>Ratio</th>
+                    <th class="text-center">Rank</th>
+                    <th class="text-center">Name</th>
+                    <th class="text-center">Wins</th>
+                    <th class="text-center">Losses</th>
+                    <th class="text-center">Ratio</th>
+                    <th class="text-center">Total</th>
                 </tr>
                 <tr ng-repeat="ranking in rankings">
-                    <td>{{ ranking.position }}</td>
-                    <td>{{ ranking.alias }}</td>
-                    <td>{{ ranking.wins }}</td>
-                    <td>{{ ranking.loss }}</td>
-                    <td>{{ ranking.wins / (ranking.wins + ranking.loss) | percentage:2 }}</td>
+                    <td class="text-center">{{ $index + 1 }}</td>
+                    <td class="text-center">{{ ranking.userName }}</td>
+                    <td class="text-center">{{ ranking.wins }}</td>
+                    <td class="text-center">{{ ranking.total - ranking.wins }}</td>
+                    <td class="text-center">{{ ranking.wins / ranking.total | percentage:2 }}</td>
+                    <td class="text-center">{{ ranking.total }}</td>
                 </tr>
             </table>
         </div>
     </div>
-    
+
 </div>

@@ -34,6 +34,24 @@ namespace NeshHouse.Stats.Web.Controllers
             return SingleResult.Create(result);
         }
 
+
+        private void UpdateRatings(GameResult gameResult)
+        {
+            var game = db.Games.Include(x => x.GameResults)
+                               .Include("GameResults.User")
+                               .SingleOrDefault(x => x.Id == gameResult.GameId);
+            var confimCount = game.GameResults.Count(x => x.IsConfirmed);
+            if (confimCount == game.GameResults.Count)
+            {
+                var winners = game.GameResults.Where(x => x.Outcome == GameOutcome.Win).Select(x=> x.User);
+                var losers = game.GameResults.Where(x => x.Outcome == GameOutcome.Loss).Select(x => x.User);
+                UserRatingExtensions.EvaluateRating(db, game, winners, losers);
+
+                var usergroups = db.UserGroups.Where(x => x.GameId == game.Id);
+                db.UserGroups.RemoveRange(usergroups);
+            }
+        }
+
         public async Task<IHttpActionResult> Put([FromODataUri] int key, GameResult update)
         {
             if (!ModelState.IsValid)
@@ -47,6 +65,7 @@ namespace NeshHouse.Stats.Web.Controllers
             db.Entry(update).State = EntityState.Modified;
             try
             {
+                UpdateRatings(update);
                 await db.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
