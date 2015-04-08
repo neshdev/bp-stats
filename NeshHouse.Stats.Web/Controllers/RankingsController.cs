@@ -15,13 +15,17 @@ namespace NeshHouse.Stats.Web.Controllers
         // GET: api/Rankings
         public IQueryable<Ranking> GetRankings()
         {
-            var rankings = from ur in db.UserRatings
-                           join gr in db.GameResults on ur.Name equals gr.UserName
-                           group gr by new { ur.Name, ur.StandardDeviation, ur.Mean, ur.ConservativeRating } into grp
+            var count = 1;
+
+            var rankings = from tr in db.TeamRatings
+                           join utr in db.UserTeamRatings on tr.Id equals utr.TeamRatingId
+                           join gr in db.GameResults on utr.UserName equals gr.UserName
+                           where tr.Count == count
+                           group gr by new { utr.UserName, tr.StandardDeviation, tr.Mean, tr.ConservativeRating } into grp
                            orderby grp.Key.Mean descending, grp.Key.StandardDeviation descending, grp.Key.ConservativeRating descending
                            select new Ranking
                            {
-                               UserName = grp.Key.Name,
+                               UserName = grp.Key.UserName,
                                Mean = grp.Key.Mean,
                                StandardDeviation = grp.Key.StandardDeviation,
                                ConservativeRating = grp.Key.ConservativeRating,

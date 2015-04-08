@@ -69,7 +69,8 @@ namespace NeshHouse.Stats.Web.Models
         public DbSet<Game> Games { get; set; }
         public DbSet<GameResult> GameResults { get; set; }
 
-        public DbSet<UserRating> UserRatings { get; set; }
+        public DbSet<TeamRating> TeamRatings { get; set; }
+        public DbSet<UserTeamRating> UserTeamRatings { get; set; }
     }
 
 
@@ -78,7 +79,7 @@ namespace NeshHouse.Stats.Web.Models
         [Key]
         public string Name { get; set; }
 
-        [JsonIgnore] 
+        [JsonIgnore]
         public virtual ICollection<Connection> Connections { get; set; }
 
         [JsonIgnore]
@@ -128,7 +129,7 @@ namespace NeshHouse.Stats.Web.Models
         public int Id { get; set; }
         public DateTimeOffset ReportDate { get; set; }
         public GameStatus Status { get; set; }
-        
+
         public Matchup Matchup { get; set; }
 
         public double MatchQuality { get; set; }
@@ -159,7 +160,7 @@ namespace NeshHouse.Stats.Web.Models
         public string UserName { get; set; }
 
         public bool IsConfirmed { get; set; }
-        
+
         [JsonIgnore]
         [ForeignKey("GameId")]
         public Game Game { get; set; }
@@ -198,44 +199,84 @@ namespace NeshHouse.Stats.Web.Models
 
     public static class UserRatingExtensions
     {
-        public static UserRating FindAddUserRatingifNotExists(this HubContext context, User user)
+        private static TeamRating CreateTeam(IEnumerable<User> users)
         {
-            UserRating rating = context.UserRatings.FirstOrDefault(x => x.Name == user.Name);
-            if (rating == null)
+            GameInfo gi = GameInfo.DefaultGameInfo;
+            TeamRating team = new TeamRating()
             {
-                var gameInfo = GameInfo.DefaultGameInfo;
-                
-                rating = new UserRating
+                Mean = gi.DefaultRating.Mean,
+                StandardDeviation = gi.DefaultRating.StandardDeviation,
+                ConservativeRating = gi.DefaultRating.ConservativeRating,
+                UserTeamRatings = users.Select(x => new UserTeamRating
                 {
-                    User = user,
-                    Name = user.Name,
-                    ConservativeRating = gameInfo.DefaultRating.ConservativeRating,
-                    Mean = gameInfo.DefaultRating.Mean,
-                    StandardDeviation = gameInfo.DefaultRating.StandardDeviation,
-                };
-                context.UserRatings.Add(rating);
-            }
-            return rating;
+                    User = x,
+                    UserName = x.Name,
+                }).ToList(),
+                Count = users.Count(),
+            };
+            return team;
         }
+
+        public static TeamRating FirstTeamOrDefault(this HubContext context, IEnumerable<User> users)
+        {
+            TeamRating team = null;
+            var userNames = users.Select(x => x.Name);
+
+            var list = context
+                                    .UserTeamRatings
+                                    .Include(x => x.TeamRating)
+                                    .Where(x => userNames.Contains(x.UserName))
+                                    .GroupBy(x => x.TeamRatingId);
+
+            //group by losing include
+            var utrByTeam = context
+                                    .UserTeamRatings
+                                    .Include(x => x.TeamRating)
+                                    .Where(x => userNames.Contains(x.UserName))
+                                    .GroupBy(x => x.TeamRatingId)
+                                    .AsEnumerable()
+                                    .FirstOrDefault(x => x.Count() == users.Count());
+
+            if (utrByTeam != null)
+            {
+                var id = utrByTeam.First().TeamRatingId;
+                team = context.TeamRatings.First(x => x.Id == id);
+            }
+            else
+            {
+                GameInfo gi = GameInfo.DefaultGameInfo;
+                team = new TeamRating()
+                {
+                    Name = string.Join(" and ", userNames),
+                    Mean = gi.DefaultRating.Mean,
+                    StandardDeviation = gi.DefaultRating.StandardDeviation,
+                    ConservativeRating = gi.DefaultRating.ConservativeRating,
+                    UserTeamRatings = users.Select(x => new UserTeamRating
+                    {
+                        User = x,
+                        UserName = x.Name,
+                    }).ToList(),
+                    Count = users.Count(),
+                };
+                context.TeamRatings.Add(team);
+            }
+
+            return team;
+
+        }
+
 
         public static void EvaluateRating(HubContext context, Game game, IEnumerable<User> winners, IEnumerable<User> losers)
         {
-            var winningTeam = new Team<Player<UserRating>>();
-            foreach (var item in winners)
-            {
-                var userRating = context.FindAddUserRatingifNotExists(item);
-                var player = new Player<UserRating>(userRating);
-                winningTeam.AddPlayer(player, new Rating(userRating.Mean, userRating.StandardDeviation, userRating.ConservativeRating));
-            }
+            var winningTeamRating = context.FirstTeamOrDefault(winners);
+            var losingTeamRating = context.FirstTeamOrDefault(losers);
 
-            var losingTeam = new Team<Player<UserRating>>();
-            foreach (var item in losers)
-            {
-                var userRating = context.FindAddUserRatingifNotExists(item);
-                var player = new Player<UserRating>(userRating);
-                losingTeam.AddPlayer(player, new Rating(userRating.Mean, userRating.StandardDeviation, userRating.ConservativeRating));
-            }
-            
+            var winningPlayer = new Player<TeamRating>(winningTeamRating);
+            var losingPlayer = new Player<TeamRating>(losingTeamRating);
+
+            var winningTeam = new Team<Player<TeamRating>>(winningPlayer, new Rating(winningTeamRating.Mean, winningTeamRating.StandardDeviation, winningTeamRating.ConservativeRating));
+            var losingTeam = new Team<Player<TeamRating>>(losingPlayer, new Rating(losingTeamRating.Mean, losingTeamRating.StandardDeviation, losingTeamRating.ConservativeRating));
+
             var teams = Teams.Concat(winningTeam, losingTeam);
 
             var gameInfo = GameInfo.DefaultGameInfo;
@@ -248,27 +289,45 @@ namespace NeshHouse.Stats.Web.Models
 
             foreach (var item in newRatings)
             {
-                var userRating = item.Key.Id;
+                var teamRating = item.Key.Id;
                 var rating = item.Value;
-                userRating.ConservativeRating = rating.ConservativeRating;
-                userRating.Mean = rating.Mean;
-                userRating.StandardDeviation = rating.StandardDeviation;
+                teamRating.ConservativeRating = rating.ConservativeRating;
+                teamRating.Mean = rating.Mean;
+                teamRating.StandardDeviation = rating.StandardDeviation;
             }
-        } 
+        }
+
     }
 
-    public class UserRating
+    public class TeamRating
     {
         public int Id { get; set; }
-
         public string Name { get; set; }
 
-        [ForeignKey("Name")]
-        public User User { get; set; }
+        public int Count { get; set; }
 
         public double Mean { get; set; }
         public double StandardDeviation { get; set; }
         public double ConservativeRating { get; set; }
+
+        public ICollection<UserTeamRating> UserTeamRatings { get; set; }
+    }
+
+    public class UserTeamRating
+    {
+        public int id { get; set; }
+
+        public string UserName { get; set; }
+
+        public int TeamRatingId { get; set; }
+
+        [JsonIgnore]
+        [ForeignKey("TeamRatingId")]
+        public TeamRating TeamRating { get; set; }
+
+        [JsonIgnore]
+        [ForeignKey("UserName")]
+        public User User { get; set; }
     }
 
     public class Ranking
