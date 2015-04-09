@@ -9,17 +9,17 @@
                 <tr>
                     <th class="text-center">Rank</th>
                     <th class="text-center">Name</th>
+                    <th class="text-center">Ratio</th>
                     <th class="text-center">Wins</th>
                     <th class="text-center">Losses</th>
-                    <th class="text-center">Ratio</th>
                     <th class="text-center">Total</th>
                 </tr>
                 <tr ng-repeat="ranking in rankings">
-                    <td class="text-center">{{ $index + 1 }}</td>
+                    <td class="text-center">{{ ranking.denseRank }}</td>
                     <td class="text-center">{{ ranking.userName }}</td>
-                    <td class="text-center">{{ ranking.wins }}</td>
-                    <td class="text-center">{{ ranking.total - ranking.wins }}</td>
                     <td class="text-center">{{ ranking.wins / ranking.total | percentage:2 }}</td>
+                    <td class="text-center">{{ ranking.wins }}</td>
+                    <td class="text-center">{{ ranking.losses }}</td>
                     <td class="text-center">{{ ranking.total }}</td>
                 </tr>
             </table>

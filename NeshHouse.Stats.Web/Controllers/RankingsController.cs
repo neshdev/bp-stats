@@ -5,6 +5,8 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using System.Web;
+using System.Data.SqlClient;
 
 namespace NeshHouse.Stats.Web.Controllers
 {
@@ -12,28 +14,55 @@ namespace NeshHouse.Stats.Web.Controllers
     {
         private HubContext db = new HubContext();
 
-        // GET: api/Rankings
-        public IQueryable<Ranking> GetRankings()
+       //  GET: api/Rankings
+        public IEnumerable<Ranking> GetRankings()
         {
-            var count = 1;
+            Dictionary<string, string> paramDict = this.Request.GetQueryNameValuePairs().ToDictionary(kv => kv.Key, kv => kv.Value, StringComparer.OrdinalIgnoreCase);
 
-            var rankings = from tr in db.TeamRatings
-                           join utr in db.UserTeamRatings on tr.Id equals utr.TeamRatingId
-                           join gr in db.GameResults on utr.UserName equals gr.UserName
-                           where tr.Count == count
-                           group gr by new { utr.UserName, tr.StandardDeviation, tr.Mean, tr.ConservativeRating } into grp
-                           orderby grp.Key.Mean descending, grp.Key.StandardDeviation descending, grp.Key.ConservativeRating descending
-                           select new Ranking
-                           {
-                               UserName = grp.Key.UserName,
-                               Mean = grp.Key.Mean,
-                               StandardDeviation = grp.Key.StandardDeviation,
-                               ConservativeRating = grp.Key.ConservativeRating,
-                               Total = grp.Count(),
-                               Wins = grp.Sum(x=> x.Outcome == GameOutcome.Win ? 1 : 0)
-                           };
+            int matchup = 1;
 
-            return rankings;
+            if (paramDict.ContainsKey("matchup"))
+            {
+                var matchupString = paramDict["matchup"];
+                var tryMatchup = 0;
+                matchup = int.TryParse(matchupString, out tryMatchup) ? tryMatchup : matchup;
+            }
+            
+            var results = RetrieveRankings(matchup);
+
+            # region inefficient query in linqpad using sp instead
+            //
+            //var results = from s in 
+            //                  (from g in db.Games
+            //                  where g.Matchup == matchUp
+            //                  join gt in db.GameTeams on g.Id equals gt.GameId
+            //                  join t in db.Teams on gt.TeamId equals t.Id
+            //                  join ut in db.UserTeams on t.Id equals ut.TeamId
+            //                  join gr in db.GameResults on new { g.Id, ut.UserName } equals new { Id = gr.GameId, UserName = gr.UserName }
+            //                  group gr by new { t.Name, t.Mean, t.StandardDeviation, t.ConservativeRating, gr.Outcome, g.Id })
+            //              group s by new { s.Key.Name, s.Key.Mean, s.Key.StandardDeviation, s.Key.ConservativeRating } into rankings
+            //              orderby rankings.Key.Mean descending
+            //                     ,rankings.Key.ConservativeRating descending
+            //                     , rankings.Key.StandardDeviation descending
+            //              select new Ranking
+            //              {
+            //                  UserName = rankings.Key.Name,
+            //                  Total = rankings.Select(x=> x.Key.Id).Count(),
+            //                  Wins = rankings.Where(x=> x.Key.Outcome == GameOutcome.Win).Count(),
+            //                  Losses = rankings.Where(x => x.Key.Outcome == GameOutcome.Loss).Count(),
+            //                  Mean = rankings.Key.Mean,
+            //                  StandardDeviation = rankings.Key.StandardDeviation,
+            //                  ConservativeRating = rankings.Key.ConservativeRating,
+            //              };
+            # endregion
+
+            return results;
+        }
+        
+        private List<Ranking> RetrieveRankings(int matchup)
+        {
+            var results = db.Database.SqlQuery<Ranking>("exec [dbo].[stats_RetrieveRankings] {0}", matchup).ToList();
+            return results;
         }
 
     }

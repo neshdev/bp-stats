@@ -9,7 +9,7 @@ namespace NeshHouse.Stats.Web.Migrations
     {
         public Configuration()
         {
-            AutomaticMigrationsEnabled = true;
+            AutomaticMigrationsEnabled = false;
             AutomaticMigrationDataLossAllowed = true;
             ContextKey = "NeshHouse.Stats.Web.Models.HubContext";
         }

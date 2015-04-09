@@ -20,6 +20,8 @@ namespace NeshHouse.Stats.Web.Models
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<UserGroup>().HasKey(ug => new { ug.UserName, ug.GroupName });
+
+            
         }
 
         public HubContext()
@@ -68,9 +70,10 @@ namespace NeshHouse.Stats.Web.Models
 
         public DbSet<Game> Games { get; set; }
         public DbSet<GameResult> GameResults { get; set; }
+        public DbSet<GameTeam> GameTeams { get; set; }
 
-        public DbSet<TeamRating> TeamRatings { get; set; }
-        public DbSet<UserTeamRating> UserTeamRatings { get; set; }
+        public DbSet<Team> Teams { get; set; }
+        public DbSet<UserTeam> UserTeams { get; set; }
     }
 
 
@@ -135,6 +138,8 @@ namespace NeshHouse.Stats.Web.Models
         public double MatchQuality { get; set; }
 
         public virtual ICollection<GameResult> GameResults { get; set; }
+
+        public virtual ICollection<GameTeam> GameTeams { get; set; }
     }
 
     public enum GameStatus
@@ -172,6 +177,23 @@ namespace NeshHouse.Stats.Web.Models
         public GameOutcome Outcome { get; set; }
     }
 
+    public class GameTeam
+    {
+        public int Id { get; set; }
+        public int GameId { get; set; }
+
+        [JsonIgnore]
+        [ForeignKey("GameId")]
+        public Game Game { get; set; }
+
+        public int TeamId { get; set; }
+
+        
+        [JsonIgnore]
+        [ForeignKey("TeamId")]
+        public Team Team { get; set; }
+    }
+
     public enum GameOutcome
     {
         Loss,
@@ -199,15 +221,15 @@ namespace NeshHouse.Stats.Web.Models
 
     public static class UserRatingExtensions
     {
-        private static TeamRating CreateTeam(IEnumerable<User> users)
+        private static Team CreateTeam(IEnumerable<User> users)
         {
             GameInfo gi = GameInfo.DefaultGameInfo;
-            TeamRating team = new TeamRating()
+            Team team = new Team()
             {
                 Mean = gi.DefaultRating.Mean,
                 StandardDeviation = gi.DefaultRating.StandardDeviation,
                 ConservativeRating = gi.DefaultRating.ConservativeRating,
-                UserTeamRatings = users.Select(x => new UserTeamRating
+                UserTeamRatings = users.Select(x => new UserTeam
                 {
                     User = x,
                     UserName = x.Name,
@@ -217,52 +239,62 @@ namespace NeshHouse.Stats.Web.Models
             return team;
         }
 
-        public static TeamRating FirstTeamOrDefault(this HubContext context, IEnumerable<User> users)
+        public static Team FirstTeamOrDefault(this HubContext context, IEnumerable<User> users)
         {
-            TeamRating team = null;
+            Team team = null;
             var userNames = users.Select(x => x.Name);
-
-            var list = context
-                                    .UserTeamRatings
-                                    .Include(x => x.TeamRating)
-                                    .Where(x => userNames.Contains(x.UserName))
-                                    .GroupBy(x => x.TeamRatingId);
-
+            var count = userNames.Count();
             //group by losing include
             var utrByTeam = context
-                                    .UserTeamRatings
-                                    .Include(x => x.TeamRating)
-                                    .Where(x => userNames.Contains(x.UserName))
-                                    .GroupBy(x => x.TeamRatingId)
-                                    .AsEnumerable()
-                                    .FirstOrDefault(x => x.Count() == users.Count());
+                                    .UserTeams
+                                    .Include(x => x.Team)
+                                    .GroupBy(x => x.TeamId)
+                                    .Where(x => x.Count() == count)
+                                    .Select(x => new
+                                    {
+                                        key = x.Key,
+                                        items = x
+                                    }).ToList();
 
-            if (utrByTeam != null)
+            foreach (var item in utrByTeam)
             {
-                var id = utrByTeam.First().TeamRatingId;
-                team = context.TeamRatings.First(x => x.Id == id);
+                if (item.items.Select(x=> x.UserName).Intersect(userNames).Count() == userNames.Count())
+                {
+                    team = context.Teams.First(x => x.Id == item.key);
+                    break;
+                }
             }
-            else
+            
+            if ( team == null)
             {
                 GameInfo gi = GameInfo.DefaultGameInfo;
-                team = new TeamRating()
+                team = new Team()
                 {
                     Name = string.Join(" and ", userNames),
                     Mean = gi.DefaultRating.Mean,
                     StandardDeviation = gi.DefaultRating.StandardDeviation,
                     ConservativeRating = gi.DefaultRating.ConservativeRating,
-                    UserTeamRatings = users.Select(x => new UserTeamRating
+                    UserTeamRatings = users.Select(x => new UserTeam
                     {
                         User = x,
                         UserName = x.Name,
                     }).ToList(),
                     Count = users.Count(),
                 };
-                context.TeamRatings.Add(team);
+                context.Teams.Add(team);
             }
-
             return team;
+        }
 
+        private static void AssociateTeamToGame(HubContext context, Game game, Team team)
+        {
+            var gt = new GameTeam
+            {
+                Team = team,
+                Game = game,
+            };
+
+            game.GameTeams.Add(gt);
         }
 
 
@@ -271,11 +303,11 @@ namespace NeshHouse.Stats.Web.Models
             var winningTeamRating = context.FirstTeamOrDefault(winners);
             var losingTeamRating = context.FirstTeamOrDefault(losers);
 
-            var winningPlayer = new Player<TeamRating>(winningTeamRating);
-            var losingPlayer = new Player<TeamRating>(losingTeamRating);
+            var winningPlayer = new Player<Team>(winningTeamRating);
+            var losingPlayer = new Player<Team>(losingTeamRating);
 
-            var winningTeam = new Team<Player<TeamRating>>(winningPlayer, new Rating(winningTeamRating.Mean, winningTeamRating.StandardDeviation, winningTeamRating.ConservativeRating));
-            var losingTeam = new Team<Player<TeamRating>>(losingPlayer, new Rating(losingTeamRating.Mean, losingTeamRating.StandardDeviation, losingTeamRating.ConservativeRating));
+            var winningTeam = new Team<Player<Team>>(winningPlayer, new Rating(winningTeamRating.Mean, winningTeamRating.StandardDeviation, winningTeamRating.ConservativeRating));
+            var losingTeam = new Team<Player<Team>>(losingPlayer, new Rating(losingTeamRating.Mean, losingTeamRating.StandardDeviation, losingTeamRating.ConservativeRating));
 
             var teams = Teams.Concat(winningTeam, losingTeam);
 
@@ -295,11 +327,14 @@ namespace NeshHouse.Stats.Web.Models
                 teamRating.Mean = rating.Mean;
                 teamRating.StandardDeviation = rating.StandardDeviation;
             }
+
+            AssociateTeamToGame(context, game, winningTeamRating);
+            AssociateTeamToGame(context, game, losingTeamRating);
         }
 
     }
 
-    public class TeamRating
+    public class Team
     {
         public int Id { get; set; }
         public string Name { get; set; }
@@ -310,20 +345,20 @@ namespace NeshHouse.Stats.Web.Models
         public double StandardDeviation { get; set; }
         public double ConservativeRating { get; set; }
 
-        public ICollection<UserTeamRating> UserTeamRatings { get; set; }
+        public ICollection<UserTeam> UserTeamRatings { get; set; }
     }
 
-    public class UserTeamRating
+    public class UserTeam
     {
         public int id { get; set; }
 
         public string UserName { get; set; }
 
-        public int TeamRatingId { get; set; }
+        public int TeamId { get; set; }
 
         [JsonIgnore]
-        [ForeignKey("TeamRatingId")]
-        public TeamRating TeamRating { get; set; }
+        [ForeignKey("TeamId")]
+        public Team Team { get; set; }
 
         [JsonIgnore]
         [ForeignKey("UserName")]
@@ -332,8 +367,11 @@ namespace NeshHouse.Stats.Web.Models
 
     public class Ranking
     {
+        public int Rank { get; set; }
+        public int DenseRank { get; set; }
         public string UserName { get; set; }
         public int Wins { get; set; }
+        public int Losses { get; set; }
         public int Total { get; set; }
         public double Mean { get; set; }
         public double StandardDeviation { get; set; }
