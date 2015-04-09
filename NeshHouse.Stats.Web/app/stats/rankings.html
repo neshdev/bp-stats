@@ -1,8 +1,12 @@
 ﻿<div class="container" ng-controller="RankingsController">
 
-    <div class="alert alert-info col-sm-12">
-        <p class="info">Total {{rankings.length}} players on current Beep Pong</p>
+    <div>
+        <div class="btn-group btn-group-justified">
+            <label ng-change="getRankings()" class="btn btn-primary" ng-model="matchup" btn-radio="'1'">1v1</label>
+            <label ng-change="getRankings()" class="btn btn-primary" ng-model="matchup" btn-radio="'2'">2v2</label>
+        </div>
     </div>
+
     <div class="row">
         <div class="table-responsive col-sm-12">
             <table class="table table-striped table-bordered table-hover table-condensed">
@@ -24,6 +28,10 @@
                 </tr>
             </table>
         </div>
+    </div>
+
+    <div class="alert alert-info col-sm-12">
+        <p class="info">Total {{rankings.length}} players on current Beep Pong</p>
     </div>
 
 </div>

@@ -7,8 +7,8 @@
     RankingsService.$inject = ['$http'];
 
     function RankingsService($http) {
-        this.getRankings = function () {
-            var url = '/api/rankings';
+        this.getRankings = function (matchup) {
+            var url = '/api/rankings?matchup=' + matchup;
             return $http.get(url);
         };
     }
